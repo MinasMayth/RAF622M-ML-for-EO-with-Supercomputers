@@ -1,112 +1,21 @@
-# Lab 1 — Judoor & HPC Access (2 hours)
+# Lab 1 — Judoor & HPC Access
 
-**Notebook:** [notebooks/iceland-ml/lab1_judoor_hpc_access.ipynb](../../notebooks/iceland-ml/lab1_judoor_hpc_access.ipynb)
+**Notebook:** [lab1_judoor_hpc_access.ipynb](../../../notebooks/iceland-ml/lab1_judoor_hpc_access.ipynb)
 
-## ⏱️ Time Allocation (3 × 40 min modules with breaks)
+## Scope
+Set up access to the JSC environment and validate a minimal HPC workflow.
 
-**Module 1 (40 min):** Setup & Account Creation
-- 10 min: Introduction to Judoor and HPC
-- 25 min: Judoor account setup and SSH key generation
-- 5 min: Test SSH connection
+## Learning outcomes
+- Activate course access and connect via SSH.
+- Understand `HOME`, `PROJECT`, and `SCRATCH` usage.
+- Run core scheduler commands (`squeue`, `sinfo`, `sbatch`).
 
-**Break (10 min)**
+## Suggested flow (2h)
+1. Account + SSH key setup
+2. Login and filesystem tour
+3. First batch submission and monitoring
 
-**Module 2 (40 min):** Filesystem & Environment
-- 15 min: Filesystem layout (HOME/PROJECT/SCRATCH)
-- 20 min: Workspace directory creation
-- 5 min: Navigate and check disk usage
-
-**Break (10 min)**
-
-**Module 3 (40 min):** SLURM & Practice
-- 15 min: SLURM basics and commands
-- 15 min: Hands-on exercises
-- 10 min: Optional advanced topics (SSH config, tmux)
-
-## Goals
-### Core (Essential)
-- Activate Judoor account and join training project
-- Configure SSH keys and connect to JURECA
-- Understand home/project/scratch layout
-- Create workspace directory structure
-
-### Optional (Time Permitting)
-- Explore SLURM job submission basics
-- Test interactive vs batch jobs
-- Configure SSH config file for easier access
-- Set up tmux/screen for persistent sessions
-
-## Outputs
-### Required
-- Working SSH access to JURECA
-- Workspace directories created under project/scratch
-- SSH config file (optional but recommended)
-
-### Bonus
-- SLURM sanity checks completed
-- Sample batch job submitted
-- Terminal multiplexer configured
-
-## 📚 Session Structure
-
-### Part 1: Setup (45 min)
-1. **Judoor Account** (15 min)
-   - Create account at https://judoor.fz-juelich.de
-   - Join `training2600` project
-   - Verify email and access
-
-2. **SSH Keys** (30 min)
-   - Generate SSH key pair (ed25519 recommended)
-   - Add public key to Judoor
-   - Test SSH connection to JURECA
-   - **Troubleshooting:** Common connection issues
-
-### Part 2: HPC Environment (45 min)
-3. **Filesystem Layout** (20 min)
-   - HOME vs PROJECT vs SCRATCH
-   - Storage quotas and performance
-   - Create workspace structure
-   - **Exercise:** Navigate and check disk usage
-
-4. **SLURM Basics** (25 min)
-   - Job scheduler overview
-   - Basic commands: `squeue`, `sinfo`, `sbatch`, `srun`
-   - Check partition availability
-   - **Exercise:** Submit a test job
-
-### Part 3: Advanced & Wrap-up (30 min)
-5. **Optional Advanced Topics** (15 min)
-   - SSH config file for aliases
-   - Terminal multiplexers (tmux/screen)
-   - File transfer methods (scp, rsync, Globus)
-   - VS Code Remote SSH
-
-6. **Hands-on Practice** (10 min)
-   - Self-guided exercises
-   - Partner troubleshooting
-
-7. **Q&A and Next Steps** (5 min)
-
-## 🎯 If You Finish Early
-- Configure SSH config with jump hosts
-- Set up VS Code Remote SSH connection
-- Explore module system (`module avail`, `module load`)
-- Practice advanced SLURM features (job arrays, dependencies)
-- Set up bash aliases for common commands
-
-## ✂️ If Running Out of Time
-**Priority 1 (Must Complete):**
-- Judoor account active
-- SSH connection working
-- Basic directory structure created
-
-**Can Skip:**
-- Detailed SLURM tutorial (provide cheat sheet)
-- SSH config file (can do later)
-- Terminal multiplexers
-
-**Minimal Viable Lab:**
-- Get everyone connected via SSH (60 min)
-- Create workspace directories (15 min)
-- Quick filesystem tour (15 min)
-- Assign SLURM tutorial as homework (30 min saved)
+## Expected outputs
+- Working SSH login to the cluster
+- Course workspace directory layout
+- One successful test job submission

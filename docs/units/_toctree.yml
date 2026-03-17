@@ -6,27 +6,15 @@
   sections:
   - local: lab2/README
     title: Jupyter-JSC & Git
-- title: Lab 3. Sentinel-2 Acquisition (GEE)
+- title: Lab 3. Data Acquisition (Sentinel-2)
   sections:
   - local: lab3/README
-    title: Sentinel-2 Acquisition (GEE)
-- title: Lab 4. Data Preprocessing
+    title: Data Acquisition (Sentinel-2)
+- title: Lab 4. Preprocessing & Patch Extraction
   sections:
   - local: lab4/README
-    title: Data Preprocessing
-- title: Lab 5. Patch Extraction
+    title: Preprocessing & Patch Extraction
+- title: Lab 5. CNN Training & Class Imbalance
   sections:
   - local: lab5/README
-    title: Patch Extraction
-- title: Lab 6. Baseline Model Training
-  sections:
-  - local: lab6/README
-    title: Baseline Model Training
-- title: Lab 7. Model Evaluation
-  sections:
-  - local: lab7/README
-    title: Model Evaluation
-- title: Lab 8. TerraTorch Fine-tuning
-  sections:
-  - local: lab8/README
-    title: TerraTorch Fine-tuning
+    title: CNN Training & Class Imbalance

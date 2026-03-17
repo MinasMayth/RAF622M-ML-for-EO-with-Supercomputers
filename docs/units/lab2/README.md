@@ -1,141 +1,21 @@
-# Lab 2 — Jupyter-JSC & Git (2 hours)
+# Lab 2 — Jupyter-JSC & Git
 
-**Notebook:** [notebooks/iceland-ml/lab2_jupyter_jsc_git.ipynb](../../notebooks/iceland-ml/lab2_jupyter_jsc_git.ipynb)
+**Notebook:** [lab2_jupyter_jsc_git.ipynb](../../../notebooks/iceland-ml/lab2_jupyter_jsc_git.ipynb)
 
-## ⏱️ Time Allocation (3 × 40 min modules with breaks)
+## Scope
+Run notebooks on JSC, set up Git workflow, and register a usable Python kernel.
 
-**Module 1 (40 min):** Jupyter-JSC Setup
-- 10 min: Introduction to Jupyter-JSC
-- 25 min: Launch session and interface overview
-- 5 min: Create first notebook and test
+## Learning outcomes
+- Launch a Jupyter-JSC session and open course notebooks.
+- Clone/pull the course repository with Git.
+- Create a virtual environment and register it as a kernel.
 
-**Break (10 min)**
+## Suggested flow (2h)
+1. Start Jupyter-JSC session
+2. Clone and sync repository
+3. Create venv + kernel and run smoke tests
 
-**Module 2 (40 min):** Git Fundamentals
-- 15 min: Git basics and workflow
-- 20 min: Clone course repository
-- 5 min: Configure Git identity
-
-**Break (10 min)**
-
-**Module 3 (40 min):** Virtual Environments
-- 15 min: Create Python virtual environment
-- 15 min: Register custom Jupyter kernel
-- 10 min: Hands-on practice with notebooks
-
-## Goals
-### Core (Essential)
-- Launch Jupyter-JSC and start a session on JURECA
-- Understand basic Git workflow (clone, pull)
-- Clone the course repo and set Git identity
-- Create a Python venv and register a custom kernel
-
-### Optional (Time Permitting)
-- Git branching and merging
-- Advanced Git: stashing, rebasing
-- Jupyter extensions and customization
-- Multiple kernel management
-- JupyterLab shortcuts and productivity tips
-
-## Outputs
-### Required
-- Running Jupyter-JSC session with custom kernel
-- Local clone of the course repo inside your workspace
-- Verified Git configuration
-
-### Bonus
-- Git workflow practice (commit, push, pull)
-- Custom Jupyter extensions installed
-- Markdown documentation created
-
-## 📚 Session Structure
-
-### Part 1: Jupyter-JSC (35 min)
-1. **Jupyter-JSC Introduction** (10 min)
-   - What is Jupyter-JSC?
-   - Advantages over local Jupyter
-   - Resource allocation options
-   - **Demo:** Navigate to Jupyter-JSC portal
-
-2. **Launch Session** (25 min)
-   - Select compute resources (CPU vs GPU)
-   - Start JupyterLab session
-   - Understand the interface (file browser, terminals, notebooks)
-   - **Troubleshooting:** Job queue and pending states
-
-### Part 2: Git Fundamentals (35 min)
-3. **Git Basics** (15 min)
-   - Version control concepts
-   - Git vs GitHub/GitLab
-   - Essential commands: clone, pull, status
-   - **Demo:** Git workflow visualization
-
-4. **Repository Setup** (20 min)
-   - Clone course repository
-   - Configure Git identity (name, email)
-   - Explore repository structure
-   - **Exercise:** Make a test commit (optional)
-
-### Part 3: Python Environment (30 min)
-5. **Virtual Environments** (15 min)
-   - Why use venv?
-   - Create venv in project directory
-   - Install required packages
-   - **Exercise:** Install course requirements
-
-6. **Jupyter Kernels** (15 min)
-   - What are kernels?
-   - Register custom kernel
-   - Select kernel in notebook
-   - Test imports
-   - **Troubleshooting:** Kernel not found issues
-
-### Part 4: Hands-on Practice (20 min)
-7. **Guided Exercises** (15 min)
-   - Open course notebook
-   - Run cells and verify environment
-   - Practice Git pull for updates
-   - Explore JupyterLab features
-
-8. **Q&A and Next Steps** (5 min)
-
-## 🎯 If You Finish Early
-- **Git Advanced Topics:**
-  - Create a branch for your work
-  - Practice merge conflicts resolution
-  - Set up `.gitignore` for data files
-  - Explore Git history with `git log --graph`
-  
-- **Jupyter Customization:**
-  - Install extensions (table of contents, variable inspector)
-  - Customize JupyterLab theme
-  - Learn keyboard shortcuts
-  - Set up cell tags and collapsible sections
-  
-- **Environment Management:**
-  - Create multiple environments for different projects
-  - Export environment to `requirements.txt`
-  - Practice conda vs venv
-  - Set up Jupyter magic commands
-
-## ✂️ If Running Out of Time
-**Priority 1 (Must Complete - 60 min):**
-- Launch Jupyter-JSC session (20 min)
-- Clone repository (15 min)
-- Create and register kernel (25 min)
-
-**Can Skip:**
-- Detailed Git tutorial (provide cheat sheet with clone/pull only)
-- Git commit/push practice (do in future labs)
-- Jupyter customization
-
-**Can Do Asynchronously:**
-- Git branching concepts (video tutorial)
-- Advanced Jupyter features (documentation)
-- Multiple environment setups
-
-**Minimal Viable Lab (90 min):**
-- Get Jupyter-JSC running (25 min)
-- Clone repo basics (20 min)
-- Create venv + kernel (30 min)
-- Test notebook execution (15 min)
+## Expected outputs
+- Active Jupyter session with course repo mounted
+- Git configured and repository cloned
+- Working custom kernel selected in notebook
