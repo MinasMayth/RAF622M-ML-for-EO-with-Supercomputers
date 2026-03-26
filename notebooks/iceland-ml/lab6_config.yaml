@@ -1,0 +1,16 @@
+data:
+  sampling_strategy: weighted
+  split_strategy: stratified
+  test_ratio: 0.05
+  train_ratio: 0.9
+  transforms:
+    train: null
+    val: null
+  val_ratio: 0.05
+model:
+  in_channels: 4
+  patch_size: 224
+training:
+  batch_size: 32
+  epochs: 1
+  lr: 0.00001
