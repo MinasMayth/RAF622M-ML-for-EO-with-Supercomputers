@@ -1,18 +1,43 @@
+# Course dependencies. pyproject.toml is authoritative; keep the two in step.
+#
+# The 2025/26 edition declared none of torch / lightning / scikit-learn / geemap
+# here despite importing them in the notebooks, so a fresh environment could not
+# run Lab 5 onward.
+#
+# On JURECA, create the venv from pyproject (uv sync) rather than pip-installing
+# this file, so the terratorch pin and the lockfile are honoured.
+
+# numerics / ML
+numpy>=1.26
+scikit-learn>=1.4
+torch>=2.2
+lightning>=2.2
+torchmetrics>=1.3
+
+# EO / raster
+rasterio>=1.3
+rioxarray>=0.19.0
+geopandas>=0.14
+shapely>=2.0
+sentinelsat>=1.2
+pandas>=2.2
+matplotlib>=3.8
+
+# foundation models (pin must match the version the Lab 6 notebook prints)
+terratorch==1.0.1
+
+# optional Google Earth Engine path (Lab 3 alternative)
+# earthengine-api>=1.0
+# geemap>=0.34
+
+# misc
 einops
 gdown
 ipywidgets
 ipykernel
 joblib
-rioxarray
 safetensors
 tensorboard
-terratorch==1.0.1
 wandb
 webdataset
-geopandas
-shapely
-rasterio
-sentinelsat
-pandas
-numpy
-matplotlib
+ruyaml

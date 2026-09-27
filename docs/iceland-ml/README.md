@@ -27,9 +27,19 @@ By completing this course, you will be able to:
 
 ---
 
-## Lab Structure (8 Sessions × 120 minutes)
+## Lab Structure (9 sessions × 120 minutes)
 
-Each lab builds progressively toward a complete ML pipeline.
+Each lab builds progressively toward a complete ML pipeline. Labs are numbered
+to match the notebooks and the course wiki: 1, 2, 3, 4.1, 4.2, 5.1, 5.2, 6, 7.
+
+**Labs 5.1, 5.2, 6 and 7 are graded.** Read
+[Grading & Submission Contract](../units/GRADING.md) before you start any of
+them — submission is a machine-checked `results.json` record plus raw
+predictions, not a description of what you did.
+
+Every notebook is generated from a source file in `notebooks_src/` and ships
+**with no outputs**. That is deliberate: a stored output is a number you did not
+produce. Run the cells.
 
 ### Lab 1: Judoor Account and Access to HPC
 **Week 1 | Duration: 120 min | Mode: Online**
@@ -73,124 +83,142 @@ Each lab builds progressively toward a complete ML pipeline.
 
 ---
 
-### Lab 3: Google Earth Engine - Sentinel-2 Data Acquisition
+### Lab 3: Copernicus Data Space — Sentinel-2 Acquisition
 **Week 6 | Duration: 120 min | Mode: Online**
 
 **Topics:**
-- Google Earth Engine (GEE) setup and authentication
-- Defining Area of Interest (AOI) in Iceland
-- Querying Sentinel-2 image collections
-- Cloud filtering and scene selection
-- Visualizing satellite imagery (RGB, false color)
-- Exporting imagery for ML pipeline
+- OAuth2 authentication against the Copernicus Data Space Ecosystem
+- Defining an Area of Interest and a temporal window
+- Querying and filtering Sentinel-2 L2A (cloud cover, sensing date)
+- Reading credentials from the environment (never from the notebook)
+- Downloading and verifying imagery, preserving metadata
 
 **Deliverables:**
-- ✅ GEE authenticated account
-- ✅ 4 Sentinel-2 scenes (summer 2024, <20% cloud cover)
-- ✅ Scene metadata (dates, cloud cover, bands)
-- ✅ Downloaded GeoTIFF imagery
+- ✅ Credentials configured as environment variables, nothing printed
+- ✅ 4 Sentinel-2 L2A scenes over one European tile, March–October 2018, ≤30% cloud
+- ✅ A request manifest recording what you asked for and what you got
+- ✅ Downloaded imagery with sidecar metadata
 
-📓 **Notebook:** [`lab3_gee_sentinel2_acquisition.ipynb`](../../notebooks/iceland-ml/lab3_gee_sentinel2_acquisition.ipynb)
+📓 **Notebook:** [`lab3_1_data_acquisition.ipynb`](../../notebooks/iceland-ml/lab3_1_data_acquisition.ipynb)
 
 ---
 
-### Lab 4: Data Preprocessing
+### Lab 4.1: Data Preprocessing
+**Week 7 | Duration: 120 min | Mode: Online**
+
+**Topics:**
+- Digital numbers vs reflectance: the `QUANTIFICATION_VALUE = 10000` division
+- Reprojection with explicit `src_nodata` / `dst_nodata`
+- Why labels must be resampled with `nearest` and never with interpolation
+- Aligning CORINE land cover with Sentinel-2 geometry
+- Writing artifacts that describe themselves (band list, CRS, shape)
+
+**Deliverables:**
+- ✅ Reflectance-scaled imagery, range-asserted
+- ✅ CORINE aligned to the image grid, label codes verified against the class table
+- ✅ `bands.json` and a per-output manifest
+- ✅ A preprocessing report that fails loudly on a stale output
+
+📓 **Notebook:** [`lab4_1_data_preprocessing.ipynb`](../../notebooks/iceland-ml/lab4_1_data_preprocessing.ipynb)
+
+---
+
+### Lab 4.2: Patch Extraction
 **Week 8 | Duration: 120 min | Mode: Online**
 
 **Topics:**
-- Loading and inspecting GeoTIFF imagery
-- Normalization techniques (min-max, standardization, percentile clipping)
-- Matching imagery with CORINE land cover labels
-- Creating train/validation/test splits (70/15/15)
-- Saving intermediate artifacts for downstream use
+- Extracting fixed-size patches with full provenance (scene, row, col)
+- Why a 3×3 patch against a 100 m CORINE label is not an independent sample
+- The cost of truncating a patch list in raster order
+- Persisting patches so they cannot be double-loaded
 
 **Deliverables:**
-- ✅ Normalized imagery ready for patching
-- ✅ Train/val/test split definitions
-- ✅ Normalization parameters (saved for inference)
-- ✅ Dataset metadata (bands, classes, dimensions)
+- ✅ Patch archives named `patches_*_scene.npz`, with provenance
+- ✅ A count of how many patches share each label pixel
+- ✅ Gate board for duplicates and provenance, green or diagnosed
+- ✅ A `results.json` record for the extraction
 
-📓 **Notebook:** [`lab4_preprocessing_patches.ipynb`](../../notebooks/iceland-ml/lab4_preprocessing_patches.ipynb) — preprocessing section
+📓 **Notebook:** [`lab4_2_patch_extraction.ipynb`](../../notebooks/iceland-ml/lab4_2_patch_extraction.ipynb)
 
 ---
 
-### Lab 5: Patch Extraction
-**Week 9 | Duration: 120 min | Mode: Online**
+### Lab 5.1: Baseline Training (raw PyTorch) — **graded**
+**Week 10 | Duration: 120 min | Mode: Online**
 
 **Topics:**
-- Extracting fixed-size patches (224×224) for deep learning
-- Writing clean patch metadata
-- Balancing classes across train/val/test splits
-- Persisting patches efficiently (NumPy/NPZ)
+- Trivial baselines before any model: majority, prior-matched random, per-scene majority, NDVI rule, linear probe
+- Group (scene + spatial block) splits, and a random split as a negative control
+- Fitting normalization on the training split only
+- Class imbalance as a decision with five comparable arms
+- Three seeds, and whether your improvement survives seed noise
 
 **Deliverables:**
-- ✅ Patch datasets for train/val/test
-- ✅ Patch-level metadata and integrity checks
-- ✅ Saved patch arrays ready for training
+- ✅ Baseline table recorded before training
+- ✅ Split manifest hash for the split you actually used
+- ✅ ≥3 seeds of the chosen arm, mean ± spread
+- ✅ Gate board, green or diagnosed in writing
 
-📓 **Notebook:** [`lab4_preprocessing_patches.ipynb`](../../notebooks/iceland-ml/lab4_preprocessing_patches.ipynb) — patch extraction section
+📓 **Notebook:** [`lab5_1_cnn_training.ipynb`](../../notebooks/iceland-ml/lab5_1_cnn_training.ipynb)
 
 ---
 
-### Lab 6: Baseline Model Training
+### Lab 5.2: PyTorch Lightning — **graded**
 **Week 11 | Duration: 120 min | Mode: Online**
 
 **Topics:**
-- Building CNN classifier with PyTorch
-- Creating custom PyTorch Datasets and DataLoaders
-- Training loop implementation (forward/backward passes)
-- Learning rate scheduling and early stopping
-- Model checkpointing (save best model)
-- Submitting GPU training jobs via SLURM
+- `LightningModule` / `LightningDataModule` structure, and why the split manifest is passed in
+- Model selection: monitor `val/loss`, test with `ckpt_path="best"`
+- Scheduler `interval="epoch"`, and what happens when you forget it
+- Checkpoint round-trips: a result you cannot reload is not a result
+- Moving the real run onto SLURM
 
 **Deliverables:**
-- ✅ Trained baseline CNN model
-- ✅ Training curves (loss, accuracy)
-- ✅ Best model checkpoint
-- ✅ SLURM submission script for batch jobs
+- ✅ Test metrics on the held-out split, separate from validation metrics
+- ✅ Per-class support reported, thin classes merged or flagged
+- ✅ Reloadable checkpoints (`weights_only=True`)
+- ✅ `results.json` record with the split hash
 
-📓 **Notebook:** [`lab5.1_baseline_training.ipynb`](../../notebooks/iceland-ml/lab5.1_baseline_training.ipynb)
+📓 **Notebook:** [`lab5_2_pytorch_lightning.ipynb`](../../notebooks/iceland-ml/lab5_2_pytorch_lightning.ipynb)
 
 ---
 
-### Lab 7: Model Evaluation Metrics
+### Lab 6: Foundation Model Fine-tuning (TerraTorch / Prithvi) — **graded**
 **Week 12 | Duration: 120 min | Mode: Online**
 
 **Topics:**
-- Loading trained models and test data
-- Generating predictions on test set
-- Calculating classification metrics (accuracy, precision, recall, F1)
-- Confusion matrix analysis
-- Visualizing correct and incorrect predictions
-- Per-class performance analysis
-- Identifying model strengths and weaknesses
+- Pre-training vs fine-tuning; what a geospatial foundation model gives you
+- Band names and order: TerraTorch permutes pretrained weights *by name*
+- Normalization: TerraTorch does not do it for you
+- Verifying that pretrained weights were actually loaded
+- Pretrained vs random-init, and normalization on/off as measured ablations
 
 **Deliverables:**
-- ✅ Comprehensive evaluation report
-- ✅ Confusion matrix visualizations
-- ✅ Per-class performance metrics
-- ✅ Sample predictions (correct/incorrect)
-- ✅ Recommendations for improvement
+- ✅ Three arms: correct bands, swapped bands, invalid band names — all three numbers
+- ✅ Normalization on/off comparison
+- ✅ Pretrained vs random-init comparison
+- ✅ Gate board including `gate_input_units`
 
-📓 **Notebook:** [`lab5.2_model_evaluation.ipynb`](../../notebooks/iceland-ml/lab5.2_model_evaluation.ipynb)
+📓 **Notebook:** [`lab6_terratorch_finetuning.ipynb`](../../notebooks/iceland-ml/lab6_terratorch_finetuning.ipynb)
 
 ---
 
-### Lab 8: TerraTorch Fine-tuning
+### Lab 7: Model Evaluation — **graded**
 **Week 13 | Duration: 120 min | Mode: Online**
 
 **Topics:**
-- Overview of TerraTorch and geospatial foundation models
-- Preparing TerraTorch config for Sentinel-2 land cover
-- Running fine-tuning on JURECA (CLI + SLURM submission)
-- Logging, checkpoints, and experiment tracking
+- Evaluating a real checkpoint on the held-out test split
+- Fixed label sets, and the class your model never predicts
+- Scene-clustered bootstrap confidence intervals
+- Paired comparison of two models on the same samples
+- Error analysis: top confusions, and what they mean for CORINE
 
 **Deliverables:**
-- ✅ TerraTorch config tailored to the course dataset
-- ✅ Fine-tuned model checkpoint
-- ✅ Notes on hyperparameters and runtime performance
+- ✅ Test metrics recomputed from saved raw predictions
+- ✅ Confidence intervals that respect scene correlation
+- ✅ A paired delta against your lab 5 baseline, with seed spread
+- ✅ A short written report whose numbers are all traceable to `results.json`
 
-📓 **Notebook:** [`lab6_finetune.ipynb`](../../notebooks/iceland-ml/lab6_finetune.ipynb)
+📓 **Notebook:** [`lab7_model_evaluation.ipynb`](../../notebooks/iceland-ml/lab7_model_evaluation.ipynb)
 
 ---
 
@@ -220,18 +248,31 @@ Each lab builds progressively toward a complete ML pipeline.
 All lab notebooks are available in [`notebooks/iceland-ml/`](../../notebooks/iceland-ml/):
 - `lab1_judoor_hpc_access.ipynb`
 - `lab2_jupyter_jsc_git.ipynb`
-- `lab3_gee_sentinel2_acquisition.ipynb`
-- `lab4.1_preprocessing.ipynb`
-- `lab4.2_preprocessing_patches.ipynb`
-- `lab5.1_baseline_training.ipynb`
-- `lab5.2_model_evaluation.ipynb`
-- `lab6_finetune.ipynb`
+- `lab3_1_data_acquisition.ipynb`
+- `lab4_1_data_preprocessing.ipynb`
+- `lab4_2_patch_extraction.ipynb`
+- `lab5_1_cnn_training.ipynb`
+- `lab5_2_pytorch_lightning.ipynb`
+- `lab6_terratorch_finetuning.ipynb`
+- `lab7_model_evaluation.ipynb`
+
+They are **generated** from the sources in [`notebooks_src/`](../../notebooks_src/)
+by `python scripts/nbbuild.py`. Do not edit the `.ipynb` files directly, and do
+not commit them with outputs you intend someone else to trust — run the cells.
+
+### The `eo_course` package
+Everything the labs share — paths, radiometry, labels, patch extraction, splits,
+metrics, baselines, results, and the grading gates — lives in
+[`eo_course/`](../../eo_course/). Install it with `pip install -e .` and read
+the module docstrings; they explain *why* each piece exists, usually at the
+expense of a specific 2025/26 bug. The test suite is `pytest`.
 
 ### Documentation
 - **JSC Documentation:** https://apps.fz-juelich.de/jsc/hps/jureca/
 - **Judoor Portal:** https://judoor.fz-juelich.de
-- **Google Earth Engine:** https://developers.google.com/earth-engine
+- **Copernicus Data Space:** https://dataspace.copernicus.eu
 - **PyTorch Tutorials:** https://pytorch.org/tutorials/
+- **TerraTorch:** https://terratorch.readthedocs.io
 
 ### Communication
 - **Slack Channel:** [Invite link provided by instructors]

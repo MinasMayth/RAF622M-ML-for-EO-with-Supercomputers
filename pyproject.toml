@@ -1,23 +1,75 @@
 [project]
 name = "iceland-ml-course"
-version = "0.1.0"
+version = "0.2.0"
+description = "RAF622M / TÖV606M - ML for Earth Observation powered by Supercomputers"
 requires-python = ">=3.12"
 dependencies = [
+    # --- core numerics / ML -------------------------------------------------
+    # Every one of these was imported by the 2025/26 notebooks and declared
+    # nowhere, so a fresh `uv sync` produced an environment that could not run
+    # Lab 5 onward.
+    "numpy>=1.26",
+    "scikit-learn>=1.4",
+    "torch>=2.2",
+    "lightning>=2.2",
+    "torchmetrics>=1.3",
+
+    # --- EO / raster --------------------------------------------------------
+    "rasterio>=1.3",
+    "rioxarray>=0.19.0",
+    "geopandas>=0.14",
+    "shapely>=2.0",
+    "sentinelsat>=1.2",
+
+    # --- foundation models --------------------------------------------------
+    # Pinned deliberately. The Lab 6 notebook printed TerraTorch 1.2.4 while this
+    # file declared 1.0.1, so the declared and executed environments disagreed.
+    # Keep this pin and the notebook's printed version in step, and re-verify the
+    # config keys whenever the pin moves -- TerraTorch's config schema does change.
+    "terratorch==1.0.1",
+
+    # --- misc ---------------------------------------------------------------
     "einops>=0.8.1",
     "gdown>=5.2.0",
     "ipykernel>=6.29.5",
     "ipywidgets>=8.1.7",
     "joblib>=1.5.0",
-    "rioxarray>=0.19.0",
+    "matplotlib>=3.8",
+    "pandas>=2.2",
     "ruyaml>=0.91.0",
     "safetensors>=0.5.3",
     "tensorboard>=2.19.0",
-    "terratorch==1.0.1",
     "wandb>=0.19.10",
     "webdataset>=0.2.111",
+]
+
+[project.optional-dependencies]
+# Google Earth Engine is an ALTERNATIVE acquisition path -- Lab 3 also works via the
+# Copernicus Data Space OData API. lab3_1's optional GEE cell imported `geemap`,
+# which nothing installed, so it raised ModuleNotFoundError.
+gee = [
+    "earthengine-api>=1.0",
+    "geemap>=0.34",
 ]
 
 [dependency-groups]
 dev = [
     "ruff>=0.11.9",
+    "pytest>=8.0",
 ]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+extend-exclude = [".venv", ".scratch", "notebooks"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM"]
+ignore = ["E501", "B008"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.setuptools]
+packages = ["eo_course"]

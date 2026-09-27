@@ -14,7 +14,19 @@
   sections:
   - local: lab4/README
     title: Preprocessing & Patch Extraction
-- title: Lab 5. CNN Training & Class Imbalance
+- title: Lab 5. Model Training (PyTorch & Lightning)
   sections:
   - local: lab5/README
-    title: CNN Training & Class Imbalance
+    title: Model Training (PyTorch & Lightning)
+- title: Lab 6. Foundation Model Fine-tuning
+  sections:
+  - local: lab6/README
+    title: Foundation Model Fine-tuning
+- title: Lab 7. Model Evaluation
+  sections:
+  - local: lab7/README
+    title: Model Evaluation
+- title: Course administration
+  sections:
+  - local: GRADING
+    title: Grading & Submission Contract

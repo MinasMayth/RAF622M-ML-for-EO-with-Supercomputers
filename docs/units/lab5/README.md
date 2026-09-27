@@ -1,12 +1,34 @@
-# Lab 5 — CNN Training & Class Imbalance
+# Lab 5 — Model Training (PyTorch & Lightning)
 
-**Notebooks:** 
-- [lab5_1_transformer_training.ipynb](../../../notebooks/iceland-ml/lab5_1_transformer_training.ipynb)
-- [lab5_2_pytorch_lightning.ipynb](../../../notebooks/iceland-ml/lab5_2_pytorch_lightning.ipynb)
+**Notebooks:**
+- [lab5_1_cnn_training.ipynb](../../../notebooks/iceland-ml/lab5_1_cnn_training.ipynb) — raw PyTorch
+- [lab5_2_pytorch_lightning.ipynb](../../../notebooks/iceland-ml/lab5_2_pytorch_lightning.ipynb) — Lightning
+
+Both notebooks are **generated** from sources in `notebooks_src/`. Edit the
+`.py` source and run `python scripts/nbbuild.py lab5`; do not edit the `.ipynb`.
+
+**Graded.** See [Grading & Submission Contract](../GRADING.md).
 
 ## Scope
-- Train a baseline CNN for land-cover classification and handle severe class imbalance.
+- Establish whether a trained model beats not training one, and make that judgement reproducible.
+- Handle severe class imbalance as a measured decision rather than a default.
 - Organize code using PyTorch Lightning `Trainer`, `LightningModule` and `LightningDataModule` classes.
+
+## What changed for 2027
+The 2025/26 version trained a model and reported a number. That number was wrong
+in three independent ways, none of which anything in the notebook could detect:
+
+- **No baselines.** With no majority-class or random reference, "0.69 accuracy"
+  means nothing. Lab 6's fine-tuned foundation model scored 0.1000 — exactly
+  chance — against a majority baseline of 0.538, and it was reported as a result.
+- **Normalization fitted on the whole raster before the split existed.** Every
+  test patch contributed to the transform applied to every training patch.
+- **A random split over 3×3 patches sharing 100 m CORINE labels.** Neighbouring
+  patches are not independent, so the reported accuracy was an interpolation score.
+
+Lab 5.2 additionally reported **validation** metrics (0.9231 / 0.8338 / 0.8376)
+as headline results on a split where 5 of 10 classes had support ≤ 9 and two had
+n = 1. Lab 7 hard-coded those numbers as ground truth.
 
 ## Learning outcomes
 - Build/train a CNN on patch data.

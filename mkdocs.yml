@@ -1,15 +1,15 @@
 nav:
   - Home: 'iceland-ml/README.md'
   - Lab Summary: 'iceland-ml/LAB_SUMMARY.md'
+  - Grading & Submission Contract: 'units/GRADING.md'
   - Labs:
     - Lab 1 - Judoor & HPC Access: 'units/lab1/README.md'
     - Lab 2 - Jupyter-JSC & Git: 'units/lab2/README.md'
     - Lab 3 - Sentinel-2 Acquisition: 'units/lab3/README.md'
-    - Lab 4 - Data Preprocessing: 'units/lab4/README.md'
-    - Lab 5 - Patch Extraction: 'units/lab5/README.md'
-    - Lab 6 - Baseline Model Training: 'units/lab6/README.md'
+    - Lab 4 - Preprocessing & Patch Extraction: 'units/lab4/README.md'
+    - Lab 5 - Model Training (PyTorch & Lightning): 'units/lab5/README.md'
+    - Lab 6 - Foundation Model Fine-tuning: 'units/lab6/README.md'
     - Lab 7 - Model Evaluation: 'units/lab7/README.md'
-    - Lab 8 - TerraTorch Fine-tuning: 'units/lab8/README.md'
 
 # Project information
 site_name: TÖV606M - Machine Learning for Earth Observation

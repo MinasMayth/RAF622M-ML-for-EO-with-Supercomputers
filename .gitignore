@@ -134,6 +134,9 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
+# Local scratch for the eo_course toolkit (EO_COURSE_ROOT override, synthetic data)
+.scratch/
+
 # Environments
 .env
 .venv
@@ -208,3 +211,10 @@ pyrightconfig.json
 # Custom paths
 scripts/secrets.sh
 notebooks/agb-solution.ipynb
+
+# Lightning / training artifacts (never commit)
+lightning_logs/
+*.ckpt
+*.pt
+results.csv
+artifacts/
