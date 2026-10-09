@@ -267,10 +267,20 @@ quota_lines = []
 
 # Project space on JURECA is Lustre with a GROUP quota, so -g $(id -gn) is the
 # authoritative query. Home is a per-user quota on a different filesystem.
+#
+# `lfs` is not installed on the JURECA login nodes, though, and it is not in a module.
+# Guard with `which` rather than just checking the return code: subprocess.run raises
+# FileNotFoundError when the executable does not exist, so a bare `returncode != 0`
+# check never gets a chance to run and the cell dies on line 1 for every student.
 grp = run(["sh", "-c", "id -gn"]).stdout.strip()
 home = Path(os.environ.get("HOME", str(Path.home())))
+have_lfs = shutil.which("lfs")
 for label, target, flag in (("home", home, "-u"), ("project", project_root, "-g")):
     who = paths.username() if flag == "-u" else grp
+    if not have_lfs:
+        quota_lines.append((label, "du", "lfs not installed on this host; "
+                                         "read the limit from Judoor."))
+        continue
     p = run(["lfs", "quota", "-h", flag, who, str(target)])
     ok = p.returncode == 0 and p.stdout.strip()
     quota_lines.append((label, "lfs" if ok else "unavailable", p.stdout.strip() or p.stderr.strip()))
