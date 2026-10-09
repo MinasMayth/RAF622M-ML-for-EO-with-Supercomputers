@@ -366,42 +366,69 @@ else:
     print(f"uv: {which_uv.stdout.strip()}")
     print(subprocess.run(["bash", "-lc", "uv --version"], capture_output=True, text=True).stdout.strip())
 
+# %% [markdown]
+# ### Why a uv-managed interpreter, and not `module load Python`
+#
+# The tempting recipe is `module load Stages/2026 GCCcore/14.3.0 Python/3.13.5` and
+# then build the virtualenv on top of that. It builds, it even verifies, and then it
+# breaks the moment you stop watching it, for two separate reasons:
+#
+# 1. A venv created from a module-backed CPython keeps a **dynamic dependency on
+#    `libpython3.13.so.1.0` inside the module tree**. It runs in the shell that loaded
+#    the module and fails with `cannot open shared object file` anywhere else -- which
+#    includes the Jupyter kernel. Try it: build one this way, then run
+#    `env -u LD_LIBRARY_PATH $VENV/bin/python -c "import sys"` and watch it die.
+# 2. The module can be re-staged or retired underneath you. That is exactly how the
+#    2025/26 environment died: it was built against a `Python/3.12` that later
+#    disappeared, and a whole cohort inherited
+#    `libpython3.12.so.1.0: cannot open shared object file`.
+#
+# `uv python install` puts a self-contained CPython in your scratch directory. The
+# venv has no dependency on the module tree at all, so it survives module churn and
+# works in a kernel. That is the point of `UV_PYTHON` below.
+#
+# Note this cell runs `uv sync` **here**, in the notebook. Compute nodes have no route
+# to PyPI, so package installation belongs on a login node -- which is what a
+# Jupyter-JSC session is. Do not move this cell into a `srun` wrapper.
+
 # %%
-# Where a uv-managed interpreter would live if the site modules are unavailable.
-# Scratch, not home: it is ~150 MB and home is quota-limited and backed up.
+# Scratch, not home: the interpreter is ~150 MB, home is quota-limited and backed up.
 UV_PY_HOME = paths.user_scratch(".uv-python")
-print(f"fallback interpreter dir: {UV_PY_HOME}")
+print(f"uv-managed interpreter dir: {UV_PY_HOME}")
 
 SYNC = f"""
 set -euo pipefail
-module purge 2>/dev/null || true
-# Python/3.12.3 (named in the 2025/26 recipe) is not installed on JURECA, and
-# Python/3.13.5 is not loadable on its own -- Lmod needs its toolchain too. This is
-# the chain that actually works:
-#   module load Stages/2026 GCCcore/14.3.0 Python/3.13.5
-# If that fails, fall back to a uv-managed interpreter, which is immune to the site
-# re-staging its modules (that is exactly what broke the 2025/26 virtualenv: it was
-# built against a Python/3.12 that later disappeared, leaving
-# "libpython3.12.so.1.0: cannot open shared object file").
-if ! module load ${{EO_COURSE_MODULES:-Stages/2026 GCCcore/14.3.0 Python/3.13.5}} 2>/dev/null; then
-    echo "NOTE: JURECA Python modules unavailable; using a uv-managed interpreter."
-    export UV_PYTHON_INSTALL_DIR="${{UV_PYTHON_INSTALL_DIR:-{UV_PY_HOME}}}"
-    uv python install 3.12
-fi
+export PATH="$HOME/.local/bin:$PATH"
+export UV_PYTHON_INSTALL_DIR="${{UV_PYTHON_INSTALL_DIR:-{UV_PY_HOME}}}"
+export UV_PYTHON="${{UV_PYTHON:-3.12}}"
 export UV_PROJECT_ENVIRONMENT={VENV}
+uv python install "$UV_PYTHON"
 uv sync --frozen
-uv pip install ipykernel
 echo "--- python in the environment ---"
-"$UV_PROJECT_ENVIRONMENT/bin/python" -c "import sys; print(sys.version); print(sys.prefix)"
+# -u LD_LIBRARY_PATH proves the interpreter is self-contained rather than quietly
+# inheriting libpython from whatever modules this shell happens to have loaded.
+env -u LD_LIBRARY_PATH "$UV_PROJECT_ENVIRONMENT/bin/python" -c "import sys; print(sys.version); print(sys.prefix)"
 """
 sync = run(["bash", "-lc", SYNC], cwd=REPO)
 assert sync.returncode == 0, (
     "uv sync failed. Read the output above. The two common causes on JURECA are a full "
-    "project quota (check Lab 1's quota cell) and a missing module; the error names "
-    "whichever it is."
+    "project quota (check Lab 1's quota cell) and running this from a compute node, "
+    "which has no route to PyPI; the error names whichever it is."
 )
 assert (VENV / "bin" / "python").is_file(), f"{VENV} was not created"
 print(f"\nOK: environment exists at {VENV}")
+
+# %%
+# The gate is not "the venv exists" but "the venv runs without help". A kernel does not
+# inherit your login shell's LD_LIBRARY_PATH, so neither may the environment.
+probe = run(["env", "-u", "LD_LIBRARY_PATH", str(VENV / "bin" / "python"),
+             "-c", "import sys; print(sys.prefix)"])
+assert probe.returncode == 0, (
+    "The environment only works with module-provided libraries on LD_LIBRARY_PATH. "
+    "It will fail in Jupyter. Delete it and re-run the cell above so it is rebuilt "
+    "on the uv-managed interpreter."
+)
+print("OK: the interpreter is self-contained and will work in a kernel.")
 
 # %% [markdown]
 # Optional, only if you are taking the Google Earth Engine path in Lab 3:
@@ -428,9 +455,26 @@ else:
 # assertion in section 8 will fail. That failure is the gate; it is supposed to fail.
 
 # %%
+# `--user` refuses to overwrite, and a kernel spec left by an earlier course run may be
+# a *symlink into a virtualenv that no longer exists*. ipykernel happily writes through
+# such a symlink, and Jupyter then offers a kernel that dies on contact -- which is
+# what the 2025/26 cohort saw. Clear the old spec first.
+KDIR = Path.home() / ".local" / "share" / "jupyter" / "kernels" / "ml_eo_course"
+if KDIR.is_symlink() or KDIR.exists():
+    print(f"removing existing kernel spec: {KDIR}"
+          + (f" -> {KDIR.resolve()}" if KDIR.is_symlink() else ""))
+    if KDIR.is_dir() and not KDIR.is_symlink():
+        shutil.rmtree(KDIR)
+    else:
+        KDIR.unlink()  # a real file, or a symlink pointing at nothing
+
 reg = run([str(VENV / "bin" / "python"), "-m", "ipykernel", "install", "--user",
            "--name", "ml_eo_course", "--display-name", "ML-EO Course"])
 assert reg.returncode == 0, "kernel registration failed"
+
+assert KDIR.is_dir() and not KDIR.is_symlink(), f"{KDIR} is not a real directory"
+assert (KDIR / "kernel.json").is_file(), "kernel.json was not written"
+print((KDIR / "kernel.json").read_text())
 
 kernels = run([str(VENV / "bin" / "python"), "-m", "jupyter", "kernelspec", "list"])
 assert "ml_eo_course" in kernels.stdout, "kernel not in the kernelspec list"

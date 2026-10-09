@@ -50,15 +50,19 @@ set -euo pipefail
 export EO_COURSE_ACCOUNT="${EO_COURSE_ACCOUNT:-training2653}"
 EO_ACCT_ENV="${EO_COURSE_ACCOUNT//-/_}"
 
-# Python/3.12.3 (which the 2025/26 recipe named) is not installed on JURECA.
-# Python/3.13.5 is, but it is NOT loadable on its own -- Lmod refuses it unless its
-# toolchain is present, so the whole chain has to be named. Verified on jrlogin:
-#   module load Python/3.13.5                      -> "cannot be loaded as requested"
-#   module load Stages/2026 GCCcore/14.3.0 Python/3.13.5   -> Python 3.13.5
-# Override the whole list with EO_COURSE_MODULES if the site re-stages.
+# The course virtualenv is built by lab 2 on a uv-managed interpreter, so it is
+# self-contained and needs no modules. Loading Python here is therefore optional --
+# and it must stay optional: `set -euo pipefail` above would abort an otherwise
+# healthy training job just because the site re-staged a module version.
+# (Python/3.12.3, named in the 2025/26 recipe, does not exist on JURECA at all, and
+# Python/3.13.5 is not loadable on its own -- Lmod refuses it unless its toolchain is
+# present: `module load Stages/2026 GCCcore/14.3.0 Python/3.13.5`.)
+# Override the list with EO_COURSE_MODULES if you genuinely need a module.
 module purge
 # shellcheck disable=SC2086
-module load ${EO_COURSE_MODULES:-Stages/2026 GCCcore/14.3.0 Python/3.13.5}
+if ! module load ${EO_COURSE_MODULES:-Stages/2026 GCCcore/14.3.0 Python/3.13.5} 2>/dev/null; then
+    echo "NOTE: Python modules unavailable; continuing on the self-contained venv." >&2
+fi
 
 # One virtualenv for the whole course, in PROJECT space, created by lab 2.
 # JSC exports PROJECT_<account> / SCRATCH_<account> (dashes -> underscores).
