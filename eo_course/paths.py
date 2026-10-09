@@ -15,14 +15,18 @@ fail their ``assert TRAINING_DATA_DIR.exists()`` for any student who correctly
 followed lab4_2. Everything below is derived once, from environment variables,
 and every notebook and script must import it rather than write a literal.
 
+Write ``<ACCT>`` below for the course account in use, which is
+:data:`PROJECT_ACCOUNT` -- ``training2653`` unless ``EO_COURSE_ACCOUNT`` says
+otherwise.
+
 JURECA facts you need
 ---------------------
-* Project space is ``/p/project1/training2600`` -- note the ``1``. There is no
-  ``/p/project/training2600``.
+* Project space is ``/p/project1/<ACCT>`` -- note the ``1``. There is no
+  ``/p/project/<ACCT>``.
 * Scratch is fast, large, **not backed up**, and files are deleted after 90
   days without access. Anything you cannot regenerate belongs in project space.
 * ``$SCRATCH`` on JURECA points at the *project* scratch root
-  (``/p/scratch/training2600``), not at your personal directory. You must
+  (``/p/scratch/<ACCT>``), not at your personal directory. You must
   append ``$USER`` yourself. Forgetting this is how students read each other's
   data and then cannot reproduce their own numbers.
 """
@@ -36,7 +40,18 @@ import tempfile
 from pathlib import Path
 
 #: Course SLURM account / project id, used in every sbatch template.
-PROJECT_ACCOUNT = "training2600"
+#:
+#: The account is a deployment choice, not a fact about the code: the same labs have
+#: to run under whichever training project a given edition was granted. Override it
+#: with ``EO_COURSE_ACCOUNT`` (or ``EO_COURSE_PROJECT``/``EO_COURSE_SCRATCH``, which
+#: win outright). JSC names its per-project env vars after the account with dashes
+#: turned into underscores, so ``SCRATCH_training2653`` is derived, not hard-coded.
+DEFAULT_PROJECT_ACCOUNT = "training2653"
+
+PROJECT_ACCOUNT = (os.environ.get("EO_COURSE_ACCOUNT") or DEFAULT_PROJECT_ACCOUNT).strip()
+
+#: JSC's env-var suffix for this account, e.g. ``training2653`` or ``3d_abc``.
+_ACCOUNT_ENV = PROJECT_ACCOUNT.replace("-", "_")
 
 #: Canonical JURECA roots, used only when the corresponding env var is absent.
 _JURECA_SCRATCH_ROOT = Path("/p/scratch") / PROJECT_ACCOUNT
@@ -44,8 +59,8 @@ _JURECA_PROJECT_ROOT = Path("/p/project1") / PROJECT_ACCOUNT
 
 # Env vars JSC may set, in preference order. Different login methods and
 # Jupyter-JSC session types populate different subsets of these.
-_SCRATCH_VARS = ("EO_COURSE_SCRATCH", "SCRATCH_training2600", "SCRATCH")
-_PROJECT_VARS = ("EO_COURSE_PROJECT", "PROJECT_training2600", "PROJECT")
+_SCRATCH_VARS = ("EO_COURSE_SCRATCH", f"SCRATCH_{_ACCOUNT_ENV}", "SCRATCH")
+_PROJECT_VARS = ("EO_COURSE_PROJECT", f"PROJECT_{_ACCOUNT_ENV}", "PROJECT")
 
 _notice_shown = False
 
@@ -115,7 +130,7 @@ def _fallback_root() -> Path:
 
 
 def scratch_root() -> Path:
-    """Project scratch root, e.g. ``/p/scratch/training2600``."""
+    """Project scratch root, e.g. ``/p/scratch/training2653``."""
     root = _first_env(_SCRATCH_VARS)
     if root is not None:
         return root
@@ -125,7 +140,7 @@ def scratch_root() -> Path:
 
 
 def project_root() -> Path:
-    """Project shared space root, e.g. ``/p/project1/training2600``."""
+    """Project shared space root, e.g. ``/p/project1/training2653``."""
     root = _first_env(_PROJECT_VARS)
     if root is not None:
         return root

@@ -3,7 +3,13 @@
 #
 # Read this before submitting
 # --------------------------
-# * Account is `training2600`. JURECA-DC partitions are `dc-cpu` and `dc-gpu`
+# * Account defaults to `training2653`. `#SBATCH` lines are parsed before the shell
+#   runs, so the account cannot be a shell variable here: to run the labs under a
+#   different project, override it at submit time and tell the code about it, e.g.
+#       EO_COURSE_ACCOUNT=training2600 sbatch --account=training2600 slurm/train_jureca.sbatch
+#   Everything below (env dir, scratch cache) is derived from EO_COURSE_ACCOUNT, so
+#   the two lines above are the only place an account name appears.
+# * JURECA-DC partitions are `dc-cpu` and `dc-gpu`
 #   (lower case). The 2025/26 lab 1 taught `JURECA-DC_CPU` / `JURECA-DC_GPU`,
 #   which are not partition names, and its example sbatch had no `--gres` line --
 #   so a student who copied it asked for a GPU job and got one that could not see
@@ -21,7 +27,7 @@
 # Named arm:  sbatch --export=ALL,ARM_TAG=weights_sqrt slurm/train_jureca.sbatch
 
 #SBATCH --job-name=eo_train
-#SBATCH --account=training2600
+#SBATCH --account=training2653
 #SBATCH --partition=dc-gpu
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
@@ -37,11 +43,36 @@ set -euo pipefail
 # `module` is a shell function, so it cannot be called from a notebook `!` cell.
 # That is why the 2025/26 notebooks used `!source ...` (which fails under /bin/sh)
 # and put virtualenvs in $HOME. In a real sbatch script it works normally.
+#
+# EO_COURSE_ACCOUNT is the single source of truth for the project id, and must
+# match eo_course.paths.PROJECT_ACCOUNT. `module purge` would drop it if it were
+# only ever set by a module, so re-export it explicitly.
+export EO_COURSE_ACCOUNT="${EO_COURSE_ACCOUNT:-training2653}"
+EO_ACCT_ENV="${EO_COURSE_ACCOUNT//-/_}"
+
+# Python/3.12.3 (which the 2025/26 recipe named) is not installed on JURECA.
+# Python/3.13.5 is, but it is NOT loadable on its own -- Lmod refuses it unless its
+# toolchain is present, so the whole chain has to be named. Verified on jrlogin:
+#   module load Python/3.13.5                      -> "cannot be loaded as requested"
+#   module load Stages/2026 GCCcore/14.3.0 Python/3.13.5   -> Python 3.13.5
+# Override the whole list with EO_COURSE_MODULES if the site re-stages.
 module purge
-module load Python/3.12.3
+# shellcheck disable=SC2086
+module load ${EO_COURSE_MODULES:-Stages/2026 GCCcore/14.3.0 Python/3.13.5}
 
 # One virtualenv for the whole course, in PROJECT space, created by lab 2.
-ENV_DIR="${PROJECT_training2600:-/p/project1/training2600}/${USER}/envs/ml_eo_course"
+# JSC exports PROJECT_<account> / SCRATCH_<account> (dashes -> underscores).
+# Bash cannot expand a variable name built at runtime inside ${...:-...}, so read
+# them with printenv rather than eval.
+_jsc_project() { printenv "PROJECT_${EO_ACCT_ENV}" 2>/dev/null || true; }
+_jsc_scratch() { printenv "SCRATCH_${EO_ACCT_ENV}" 2>/dev/null || true; }
+
+PROJECT_ROOT="$(_jsc_project)"
+: "${PROJECT_ROOT:=/p/project1/${EO_COURSE_ACCOUNT}}"
+SCRATCH_ROOT="$(_jsc_scratch)"
+: "${SCRATCH_ROOT:=/p/scratch/${EO_COURSE_ACCOUNT}}"
+
+ENV_DIR="${PROJECT_ROOT}/${USER}/envs/ml_eo_course"
 if [[ ! -d "$ENV_DIR" ]]; then
     echo "ERROR: no virtualenv at $ENV_DIR" >&2
     echo "       Run lab 2 (environment setup) before submitting training jobs." >&2
@@ -52,7 +83,7 @@ source "$ENV_DIR/bin/activate"
 
 # Matplotlib on a shared node needs a writable cache dir BEFORE it is imported.
 # The 2025/26 notebooks set this AFTER importing pyplot, which does nothing.
-export MPLCONFIGDIR="${SCRATCH_training2600:-/p/scratch/training2600}/${USER}/.cache/matplotlib"
+export MPLCONFIGDIR="${SCRATCH_ROOT}/${USER}/.cache/matplotlib"
 mkdir -p "$MPLCONFIGDIR"
 
 # CUDA_LAUNCH_BLOCKING=1 serialises every kernel and slows training 2-5x. The

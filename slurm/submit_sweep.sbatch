@@ -25,7 +25,7 @@
 #   python scripts/summarize_results.py --lab lab5
 
 #SBATCH --job-name=eo_sweep
-#SBATCH --account=training2600
+#SBATCH --account=training2653
 #SBATCH --partition=dc-cpu
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
@@ -57,12 +57,16 @@ echo "Submitting $N cells: arms=[$GRID] seeds=[$SEEDS]"
 printf '  %s\n' "${CELLS[@]}"
 
 # The worker maps its array index back to (arm, seed) via ARRAY_CELLS, so it needs
-# no knowledge of the grid layout.
+# no knowledge of the grid layout. --export=NONE clears the inherited environment,
+# so the account (and any Python module override) must be passed explicitly or the
+# worker silently falls back to the default project.
 export ARRAY_CELLS="$(IFS=,; echo "${CELLS[*]}")"
+EO_COURSE_ACCOUNT="${EO_COURSE_ACCOUNT:-training2653}"
 
 sbatch --array=1-"${N}"%4 \
-       --export=NONE,ARRAY_CELLS="${ARRAY_CELLS}" \
+       --export=NONE,ARRAY_CELLS="${ARRAY_CELLS}",EO_COURSE_ACCOUNT="${EO_COURSE_ACCOUNT}" \
        --job-name=eo_cell \
+       --account="${EO_COURSE_ACCOUNT}" \
        --time="${CELL_TIME:-02:00:00}" \
        slurm/train_jureca.sbatch
 

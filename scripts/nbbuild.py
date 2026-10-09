@@ -52,7 +52,7 @@ OUT_DIR = ROOT / "notebooks" / "iceland-ml"
 FORBIDDEN: list[tuple[str, str]] = [
     ("hashim1", "another user's home hard-coded as a data path"),
     ("maurogiovanni", "another user's home hard-coded as a data path"),
-    ("/p/project/training2600", "wrong project root; JURECA uses /p/project1/training2600"),
+    ("/p/project/training", "wrong project root; JURECA uses /p/project1/<account>"),
     ("JURECA-DC_CPU", "not a real partition name; use dc-cpu"),
     ("JURECA-DC_GPU", "not a real partition name; use dc-gpu"),
     ("YOUR_ORG", "placeholder repo URL that does not exist"),

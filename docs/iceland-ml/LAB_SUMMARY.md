@@ -27,7 +27,7 @@ Graded labs are 5.1, 5.2, 6 and 7; see
 **Notebook:** [`notebooks/iceland-ml/lab1_judoor_hpc_access.ipynb`](../../notebooks/iceland-ml/lab1_judoor_hpc_access.ipynb)
 
 **Core steps**
-1. Create Judoor account and join `training2600`
+1. Create Judoor account and join `training2653`
 2. Configure SSH keys
 3. Connect to JURECA and check storage areas (`HOME`, `PROJECT`, `SCRATCH`)
 4. Run basic Slurm commands (`squeue`, `sinfo`, `sbatch`)
@@ -167,9 +167,9 @@ truncated. Token requests are rate-limited (HTTP 429) — reuse a token rather t
 requesting one per call.
 
 ### Slurm job exits immediately
-Check account (`training2600`) and partition (`dc-cpu` / `dc-gpu`, lowercase) and
-inspect the stderr log. `/p/project/training2600` does not exist; it is
-`/p/project1/training2600`.
+Check account (`training2653`) and partition (`dc-cpu` / `dc-gpu`, lowercase) and
+inspect the stderr log. `/p/project/training2653` does not exist; it is
+`/p/project1/training2653`.
 
 ### Training out-of-memory
 Reduce batch size and/or workers; verify GPU allocation.

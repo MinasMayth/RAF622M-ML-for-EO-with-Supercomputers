@@ -31,7 +31,7 @@ Rules:
   student does not yet have.
 
 `scripts/nbbuild.py` lints every build and **fails the build** on any of:
-another user's username in a path, `/p/project/training2600` (it is `project1`),
+another user's username in a path, `/p/project/training...` (it is `project1`),
 `JURECA-DC_CPU`/`_GPU` (real names are `dc-cpu`/`dc-gpu`), `YOUR_ORG`,
 `iceland-ml-course.git`, printed credential fragments, `CUDA_LAUNCH_BLOCKING`,
 `multi_class=`, `rstrip('.SAFE')`, `path/to/model.pt`.

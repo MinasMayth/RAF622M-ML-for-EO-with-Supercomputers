@@ -54,7 +54,7 @@ produce. Run the cells.
 
 **Deliverables:**
 - ✅ Active Judoor account
-- ✅ Membership in `training2600` project
+- ✅ Membership in `training2653` project
 - ✅ Successful SSH connection to JURECA
 - ✅ Personal workspace directory structure
 

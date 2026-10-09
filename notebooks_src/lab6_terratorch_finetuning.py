@@ -628,7 +628,7 @@ if TT_SPEC is None:
     raise ModuleNotFoundError(
         "terratorch is not installed in this kernel, and the fine-tuning arms below "
         "cannot be substituted. On JURECA: activate the Lab 2 course virtualenv "
-        "($PROJECT/training2600/$USER/envs/ml_eo_course), then "
+        f"({paths.user_project('envs')}/ml_eo_course), then "
         "`pip install terratorch==1.2.4` (pyproject.toml pins 1.0.1 -- the 2025/26 "
         "notebook printed 1.2.4 while the pin said 1.0.1, so the declared and executed "
         "environments disagreed; check `pip show terratorch` and record the version "

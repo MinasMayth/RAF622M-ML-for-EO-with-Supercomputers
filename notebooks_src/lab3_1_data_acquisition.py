@@ -751,7 +751,7 @@ print("  Lab 6 must normalise to these numbers, in this band order. Not a percen
 #
 # ```bash
 # #SBATCH --job-name=s2_fetch
-# #SBATCH --account=training2600
+# #SBATCH --account=training2653
 # #SBATCH --partition=dc-cpu          # lower case; the upper-case name in the 2025/26 lab is not a partition
 # #SBATCH --ntasks-per-node=4         # one scene per task, or use --array
 # #SBATCH --cpus-per-task=1

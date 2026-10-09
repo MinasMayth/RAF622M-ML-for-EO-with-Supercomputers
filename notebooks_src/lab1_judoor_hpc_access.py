@@ -18,7 +18,7 @@
 # ## What it assumes
 #
 # Nothing except a Judoor account and a working SSH key. If you have not joined
-# `training2600`, do that first: <https://judoor.fz-juelich.de/projects/join/training2600>.
+# `training2653`, do that first: <https://judoor.fz-juelich.de/projects/join/training2653>.
 # Approval is asynchronous and is not something the 2 hours in this lab can absorb,
 # so start it before the session, not during it.
 #
@@ -108,7 +108,7 @@ assert paths.on_jureca(), (
     f"  resolved scratch root: {paths.scratch_root()}\n"
     f"  resolved project root: {paths.project_root()}\n"
     "Start a Jupyter-JSC session (https://jupyter-jsc.fz-juelich.de, System=JURECA, "
-    "Project=training2600) and open this notebook there."
+    f"Project={paths.PROJECT_ACCOUNT}) and open this notebook there."
 )
 
 # %% [markdown]
@@ -121,7 +121,7 @@ assert paths.on_jureca(), (
 #
 # 1. Register at <https://judoor.fz-juelich.de/register>. Use your university email.
 # 2. Verify your email address.
-# 3. Join the course project: <https://judoor.fz-juelich.de/projects/join/training2600>.
+# 3. Join the course project: <https://judoor.fz-juelich.de/projects/join/training2653>.
 # 4. Accept the usage policy. Training-project approval is normally fast, but it is
 #    not instantaneous, and it is the single most common reason a student cannot
 #    start Lab 2.
@@ -205,12 +205,12 @@ assert paths.on_jureca(), (
 # | Area | Root | Backed up | Retention / quota | Use it for |
 # |---|---|---|---|---|
 # | Home | `/p/home/jusers/$USER/jureca` | yes | ~50 GB | dotfiles, SSH config, small configs |
-# | Project | `/p/project1/training2600` | yes | shared project quota | code, environments, results, anything not regenerable |
-# | Scratch | `/p/scratch/training2600` | **no** | deleted after **90 days without access** | large, regenerable intermediate data |
+# | Project | `/p/project1/training2653` | yes | shared project quota | code, environments, results, anything not regenerable |
+# | Scratch | `/p/scratch/training2653` | **no** | deleted after **90 days without access** | large, regenerable intermediate data |
 #
 # Three facts students get wrong, each of which cost someone in 2025/26:
 #
-# 1. **Project space is `/p/project1/training2600` — note the `1`.** The 2025/26
+# 1. **Project space is `/p/project1/training2653` — note the `1`.** The 2025/26
 #    Lab 1 taught a project root *without* the `1`, and printed it as if it were
 #    observed output. Every student who typed it literally ended up in a directory
 #    that does not exist, and then wrote their Lab 4 outputs somewhere that no later
@@ -221,7 +221,7 @@ assert paths.on_jureca(), (
 #    working in it and your data survives a term break; touch nothing over the
 #    summer and it is gone. Scratch is **not backed up** — deletion is unrecoverable.
 # 3. **`$SCRATCH` points at the *project* scratch root, not your own directory.**
-#    On JURECA it expands to `/p/scratch/training2600`. You must append `$USER`
+#    On JURECA it expands to `/p/scratch/training2653`. You must append `$USER`
 #    yourself. The 2025/26 Lab 2 printed `$SCRATCH` bare, and three different
 #    spellings of the data path then appeared across labs 3–6, so lab 5 and lab 6
 #    failed their own existence checks for students who had correctly followed
@@ -229,7 +229,8 @@ assert paths.on_jureca(), (
 
 # %%
 print("environment variables as JSC set them:")
-for var in ("HOME", "PROJECT_training2600", "PROJECT", "SCRATCH_training2600", "SCRATCH"):
+for var in ("HOME", f"PROJECT_{paths.PROJECT_ACCOUNT.replace('-', '_')}", "PROJECT",
+            f"SCRATCH_{paths.PROJECT_ACCOUNT.replace('-', '_')}", "SCRATCH"):
     print(f"  {var:24s}= {os.environ.get(var, '<unset>')}")
 
 scratch_root = paths.scratch_root()
@@ -239,9 +240,10 @@ print(f"paths.user_scratch()   = {paths.user_scratch()}")
 print(f"paths.project_root()   = {project_root}")
 print(f"paths.user_project()   = {paths.user_project()}")
 
-assert project_root.name == "training2600", project_root
+assert project_root.name == paths.PROJECT_ACCOUNT, project_root
 assert "project1" in str(project_root), (
-    f"project root {project_root} is not under /p/project1 — check PROJECT_training2600"
+    f"project root {project_root} is not under /p/project1 — check "
+    f"PROJECT_{paths.PROJECT_ACCOUNT.replace('-', '_')}"
 )
 assert paths.user_scratch() != scratch_root, (
     "your personal scratch dir must be a subdirectory of the scratch root, not the root itself"
@@ -406,12 +408,13 @@ for reason, count in Counter(j["reason"] for j in jobs).most_common(8):
 # names `QOSMaxWallPerJob`; the 2025/26 lab gave no guidance for that message.
 
 # %%
-qos = run(["sh", "-c", "sacctmgr -nP show user $USER withassoc account=training2600 format=Account,QOS"])
+qos = run(["sh", "-c",
+           f"sacctmgr -nP show user $USER withassoc account={paths.PROJECT_ACCOUNT} format=Account,QOS"])
 if qos.returncode != 0 or not qos.stdout.strip():
     print("Could not read QOS associations (normal on some login nodes). "
           "If sbatch refuses a --time value, ask the instructor for the QOS name.")
 else:
-    print("account,QOS lines for training2600:")
+    print(f"account,QOS lines for {paths.PROJECT_ACCOUNT}:")
     print(qos.stdout.strip())
 
 # %% [markdown]
@@ -505,12 +508,12 @@ shutil.rmtree(demo, ignore_errors=True)
 # The 2025/26 lab taught:
 #
 # ```bash
-# scp myfile.txt jureca:$PROJECT_training2600/scripts/
-# rsync -avzP mydir/ jureca:$PROJECT_training2600/mydir/
+# scp myfile.txt jureca:$PROJECT_training2653/scripts/
+# rsync -avzP mydir/ jureca:$PROJECT_training2653/mydir/
 # ```
 #
 # Both are broken, and the error message does not hint at the cause. `scp` and
-# `rsync` run on your **laptop**, so your **local** shell expands `$PROJECT_training2600`
+# `rsync` run on your **laptop**, so your **local** shell expands `$PROJECT_training2653`
 # before anything reaches the network. On your laptop that variable is unset, so the
 # remote path collapses to `/scripts/` and you get `Permission denied` writing to the
 # root of the remote filesystem. The fix is to stop the local shell from expanding
@@ -520,20 +523,22 @@ shutil.rmtree(demo, ignore_errors=True)
 demo = paths.user_scratch("lab1_demo")
 demo.mkdir(parents=True, exist_ok=True)
 
-broken = run(["sh", "-c", "echo jureca:$PROJECT_training2600/scripts/"])
-fixed = run(["sh", "-c", r"echo 'jureca:/p/project1/training2600/$USER/scripts/'"])
+acct = paths.PROJECT_ACCOUNT
+acct_env = acct.replace("-", "_")
+broken = run(["sh", "-c", f"echo jureca:$PROJECT_{acct_env}/scripts/"])
+fixed = run(["sh", "-c", rf"echo 'jureca:/p/project1/{acct}/$USER/scripts/'"])
 
 b = broken.stdout.strip()
 f = fixed.stdout.strip().replace("$USER", paths.username())
 print(f"\nbroken form expands locally to : {b}")
 print(f"quoted form resolves remotely to: {f}")
-assert b.endswith("/scripts/") and "training2600" not in b, "demo did not reproduce the bug"
-assert "training2600" in f and paths.username() in f
+assert b.endswith("/scripts/") and acct not in b, "demo did not reproduce the bug"
+assert acct in f and paths.username() in f
 
-print("""
+print(f"""
 Use, from your laptop:
-  scp myfile.txt 'jureca:/p/project1/training2600/$USER/scripts/'
-  rsync -avzP mydir/ 'jureca:/p/project1/training2600/$USER/mydir/'
+  scp myfile.txt 'jureca:/p/project1/{acct}/$USER/scripts/'
+  rsync -avzP mydir/ 'jureca:/p/project1/{acct}/$USER/mydir/'
 or an absolute path with no variables at all. Single quotes are the reliable habit:
 they also protect spaces, which OneDrive-backed paths on Windows have in abundance.""")
 
@@ -560,7 +565,7 @@ they also protect spaces, which OneDrive-backed paths on Windows have in abundan
 # Write the three numbers in the cell below. Then run the next cell to see what a
 # sane request looks like and what SLURM actually reports back.
 #
-# Why this matters more than the arithmetic: `training2600` is a **shared**
+# Why this matters more than the arithmetic: `training2653` is a **shared**
 # allocation with a fixed core-hour budget. A job that reserves 80 logical CPUs for
 # 10 minutes burns 13.3 core-hours to run `sleep`. Twelve students doing that once
 # consume a day's worth of the course's budget. Over-requesting is not free, and
@@ -576,7 +581,7 @@ print("Fill in PREDICTION above, run this cell, then submit the job.")
 SBATCH_SMOKE = """#!/bin/bash
 # Lab 1 smoke test. You must be able to explain every #SBATCH line below.
 #SBATCH --job-name=lab1_smoke
-#SBATCH --account=training2600
+#SBATCH --account=training2653
 #SBATCH --partition=dc-cpu
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
@@ -606,7 +611,7 @@ print(f"written to {smoke}")
 #
 # | Directive | Value here | Why this value |
 # |---|---|---|
-# | `--account` | `training2600` | Charges the job to the course allocation. Without it SLURM uses your default account, which may have no funds. |
+# | `--account` | `training2653` | Charges the job to the course allocation. Without it SLURM uses your default account, which may have no funds. |
 # | `--partition` | `dc-cpu` | Explicit. Never rely on the `*` default partition. |
 # | `--nodes=1 --ntasks-per-node=1` | one process | The job body is `hostname` and `sleep`. One process. |
 # | `--cpus-per-task=1` | 1 CPU | The 2025/26 example asked for 80 logical CPUs for the same body. |
@@ -739,7 +744,7 @@ print("  TODO(you): ...")
 # Say this out loud, because it is the part nobody reads until the allocation is
 # gone.
 #
-# **The compute budget is shared and auditable.** `training2600` has one pool of
+# **The compute budget is shared and auditable.** `training2653` has one pool of
 # core-hours and GPU-hours for the whole cohort. `sacct` records every job you ever
 # submitted with its allocation, wall time and peak memory, and the instructor can
 # and does read it. Over-requesting is visible; so is everything you run.

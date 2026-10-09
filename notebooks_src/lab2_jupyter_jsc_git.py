@@ -21,7 +21,7 @@
 #
 # ## What it assumes from Lab 1
 #
-# A Judoor account in `training2600`, a working SSH key, and the workspace layout
+# A Judoor account in `training2653`, a working SSH key, and the workspace layout
 # (`repos/`, `envs/`, `scripts/`, `logs/`, `results/`) under your project space. If
 # you skipped Lab 1's layout cell, the clone in section 5 will create the parents for
 # you, but `envs/` is where your environment must live, so make sure it exists.
@@ -109,7 +109,7 @@ def git_out(*args, cwd=None) -> str:
 # ## 2. Launching Jupyter-JSC, and which machine you are actually on
 #
 # 1. Open <https://jupyter-jsc.fz-juelich.de> and log in with **Judoor**.
-# 2. In the job form choose **System: JURECA**, **Project: training2600**, and a
+# 2. In the job form choose **System: JURECA**, **Project: training2653**, and a
 #    wall-clock time that covers the lab.
 # 3. For the interactive partition, **read the form's own list** and pick the
 #    JURECA-DC interactive entry it offers you. Do not type a name from memory.
@@ -127,7 +127,7 @@ def git_out(*args, cwd=None) -> str:
 # labs 3 and 4 then did multi-gigabyte raster I/O on it.
 #
 # **Why heavy I/O on a login node is a problem for the whole training project**, not
-# just you: the login nodes are shared by every member of `training2600` and by the
+# just you: the login nodes are shared by every member of `training2653` and by the
 # Jupyter-JSC launcher that starts everyone's sessions. One student reading a 20 GB
 # GeoTIFF through a notebook cell saturates the Lustre client and the CPU, and
 # everyone else's terminal stalls and their session fails to launch. JSC will kill
@@ -145,7 +145,7 @@ print(f"SLURM_JOB_ID  : {os.environ.get('SLURM_JOB_ID', 'unset -> not inside a S
 
 assert paths.on_jureca(), (
     "This notebook must run on JURECA. Open it in a Jupyter-JSC session "
-    "(System=JURECA, Project=training2600)."
+    f"(System=JURECA, Project={paths.PROJECT_ACCOUNT})."
 )
 if paths.on_login_node():
     print(
@@ -367,10 +367,27 @@ else:
     print(subprocess.run(["bash", "-lc", "uv --version"], capture_output=True, text=True).stdout.strip())
 
 # %%
+# Where a uv-managed interpreter would live if the site modules are unavailable.
+# Scratch, not home: it is ~150 MB and home is quota-limited and backed up.
+UV_PY_HOME = paths.user_scratch(".uv-python")
+print(f"fallback interpreter dir: {UV_PY_HOME}")
+
 SYNC = f"""
 set -euo pipefail
-module purge
-module load Python/3.12.3 2>/dev/null || true
+module purge 2>/dev/null || true
+# Python/3.12.3 (named in the 2025/26 recipe) is not installed on JURECA, and
+# Python/3.13.5 is not loadable on its own -- Lmod needs its toolchain too. This is
+# the chain that actually works:
+#   module load Stages/2026 GCCcore/14.3.0 Python/3.13.5
+# If that fails, fall back to a uv-managed interpreter, which is immune to the site
+# re-staging its modules (that is exactly what broke the 2025/26 virtualenv: it was
+# built against a Python/3.12 that later disappeared, leaving
+# "libpython3.12.so.1.0: cannot open shared object file").
+if ! module load ${{EO_COURSE_MODULES:-Stages/2026 GCCcore/14.3.0 Python/3.13.5}} 2>/dev/null; then
+    echo "NOTE: JURECA Python modules unavailable; using a uv-managed interpreter."
+    export UV_PYTHON_INSTALL_DIR="${{UV_PYTHON_INSTALL_DIR:-{UV_PY_HOME}}}"
+    uv python install 3.12
+fi
 export UV_PROJECT_ENVIRONMENT={VENV}
 uv sync --frozen
 uv pip install ipykernel

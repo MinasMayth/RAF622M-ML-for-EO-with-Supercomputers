@@ -44,7 +44,7 @@ By completing this course, you will learn to:
 2. **Google Earth Engine** (needed for Lab 3): https://earthengine.google.com/signup
 
 ### Step 2: Join the Training Project
-After your Judoor account is approved, join the `training2600` project.
+After your Judoor account is approved, join the `training2653` project.
 
 ### Step 3: Follow the Labs
 Work through the notebooks sequentially starting with Lab 1.
