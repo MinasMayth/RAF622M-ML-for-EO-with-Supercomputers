@@ -71,5 +71,14 @@ ignore = ["E501", "B008"]
 testpaths = ["tests"]
 addopts = "-q"
 
+# Without a build backend uv treats the project as "virtual" and installs only the
+# dependencies, never `eo_course` itself. The notebooks import it by name, and a
+# Jupyter kernel starts in the notebook's own directory (notebooks/iceland-ml/), not
+# the repo root -- so an uninstalled package means ModuleNotFoundError in Labs 1 and
+# 3-7. Installing the project makes the import work from any working directory.
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
 [tool.setuptools]
 packages = ["eo_course"]
