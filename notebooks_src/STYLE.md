@@ -50,6 +50,50 @@ python scripts/nbbuild.py lab5 && python scripts/check_notebooks.py
 (IPython magics are commented out first, so `%matplotlib inline` is fine). A
 cell with a stray bracket builds happily and only fails in front of a student.
 
+Compiling is still not enough. Three Lab 2 bugs survived both linters and the
+compiler and only appeared when the notebook was executed in order on JURECA:
+
+* `git_out()` defaults to `cwd=REPO`, section 4 called it, section 5 assigned
+  `REPO`. A function body is not run at `def` time, so the `NameError` happens
+  at the *call* -- no compiler can see it.
+* `matplotlib.get_config_dir()` -- the real function is `get_configdir()`. Six
+  call sites, all valid Python, all `AttributeError`.
+* `ip.getoutput("pwd").strip()` -- IPython returns an `SList`, a list subclass.
+
+So run the third checker too:
+
+```
+python scripts/nbbuild.py lab2 && python scripts/check_notebooks.py
+python scripts/check_cell_flow.py
+```
+
+`check_cell_flow.py` follows names across cells and reports any cell that loads
+something not yet defined, including names a called function needs. Add `--api`
+to also resolve every `module.attr` access against the installed package; that
+mode imports the real libraries, so it takes a few minutes and must run in an
+interpreter that has them (the course venv, not your system Python).
+
+Neither checker replaces running the notebooks. Do that on JURECA before you
+call a lab done -- see *Running a lab headless* in section 1.1.
+
+### 1.1 Running a lab headless
+
+`scripts/run_notebook_headless.py` executes a notebook cell by cell in a real
+kernel and stops at the first failure, printing that cell's traceback. It uses
+only `jupyter_client`, so it runs in the course venv with nothing extra
+installed.
+
+```
+$VENV/bin/python scripts/run_notebook_headless.py \
+    notebooks/iceland-ml/lab1_judoor_hpc_access.ipynb --kernel ml_eo_course
+```
+
+Run **both** kernels where it matters: Lab 1 sections 1 and 2 are meant to work
+in a kernel that is *not* the course one, so check them with
+`--kernel python3 --only 3:10` before checking the whole file with
+`--kernel ml_eo_course`. A lab that only runs after you have already done the
+lab is not a lab.
+
 ## 2. Use `eo_course`, do not re-implement
 
 The package is the audited reference implementation. Labs must **call** it, not copy
