@@ -47,6 +47,7 @@
 # %%
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import socket
@@ -474,7 +475,72 @@ assert reg.returncode == 0, "kernel registration failed"
 
 assert KDIR.is_dir() and not KDIR.is_symlink(), f"{KDIR} is not a real directory"
 assert (KDIR / "kernel.json").is_file(), "kernel.json was not written"
-print((KDIR / "kernel.json").read_text())
+
+# %% [markdown]
+# ### Why the kernel needs `-E` before it will start on Jupyter-JSC
+#
+# Registering the kernel is not enough. On JURECA it appears in the kernel menu, you
+# select it, and it sits at "Starting..." forever. The server is not misconfigured —
+# the kernel process dies on contact, and the reason is an environment variable you
+# never set.
+#
+# A Jupyter-JSC server runs with the `JupyterLab` module loaded, and that module
+# exports a `PYTHONPATH` pointing at its own site-packages — built for **Python 3.13**.
+# Your kernel is **Python 3.12**, and a kernel inherits the server's environment. So
+# `import zmq` finds the server's cp313 PyZMQ instead of the one in your venv, cannot
+# load the compiled backend, and the kernel exits before it can speak to the server:
+#
+# ```
+# File ".../PyZMQ/27.1.0-GCCcore-14.3.0/lib/python3.13/site-packages/zmq/backend/__init__.py", line 30
+#     raise original_error from None
+# ```
+#
+# `python -E` tells the interpreter to ignore `PYTHONPATH` (and `PYTHONHOME`), so the
+# kernel uses only its own venv. This is the general rule for virtualenvs on a module
+# system: **the environment that works in your shell is not the environment your kernel
+# gets.** Note `LD_LIBRARY_PATH` is *not* the culprit here — only `PYTHONPATH` is.
+#
+# The cell below patches the installed spec in place. It is idempotent, so re-running
+# it is harmless.
+
+# %%
+spec_path = KDIR / "kernel.json"
+spec = json.loads(spec_path.read_text())
+argv = [a for a in spec["argv"] if a != "-E"]
+argv.insert(1, "-E")  # immediately after the interpreter
+spec["argv"] = argv
+spec_path.write_text(json.dumps(spec, indent=1) + "\n")
+print(spec_path.read_text())
+
+assert spec["argv"][1] == "-E", "failed to add -E to the kernel argv"
+
+# %%
+# Prove the diagnosis instead of asserting it. Run the kernel's own interpreter twice
+# under the server's PYTHONPATH: once as ipykernel would have installed it, once with
+# -E. The first must fail, the second must work. If the first one *succeeds*, the site
+# has changed and this whole section needs a second look.
+PROBE = f"""
+module purge >/dev/null 2>&1
+module load Stages/2026 GCCcore/14.3.0 Python/3.13.5 JupyterLab >/dev/null 2>&1 || true
+if [ -z "${{PYTHONPATH:-}}" ]; then
+    echo "SKIP: no module PYTHONPATH on this host, nothing to demonstrate"
+else
+    echo "PYTHONPATH head: ${{PYTHONPATH%%:*}}"
+    echo "--- without -E ---"
+    {VENV / "bin" / "python"} -c "import zmq" 2>&1 | tail -2 || true
+    echo "--- with -E ---"
+    {VENV / "bin" / "python"} -E -c "import zmq; print('OK zmq', zmq.__version__, 'libzmq', zmq.zmq_version())"
+fi
+"""
+ab = run(["bash", "-lc", PROBE])
+assert ab.returncode == 0, (
+    "The kernel interpreter cannot import zmq even with -E. Read the output above."
+)
+assert "OK zmq" in ab.stdout, "the -E probe did not report success"
+if "SKIP" not in ab.stdout:
+    print("\nThat first failure is exactly why the kernel sat at 'Starting...' forever.")
+print("\nKernel is importable under the server's PYTHONPATH. Now switch this notebook")
+print("to **ML-EO Course** and re-run section 1, then continue.")
 
 kernels = run([str(VENV / "bin" / "python"), "-m", "jupyter", "kernelspec", "list"])
 assert "ml_eo_course" in kernels.stdout, "kernel not in the kernelspec list"
