@@ -3,6 +3,24 @@
 #
 # **RAF622M / TÖV606M — ML for Earth Observation powered by Supercomputers**
 #
+# ## How this lab is ordered
+#
+# Part 0 is **reading and typing, not running**. It gets you from no account at all to
+# a JupyterLab tab with the course environment built, and it deliberately contains no
+# code cells — you cannot run a cell before you can log in, and the 2025/26 edition
+# asked you to anyway.
+#
+# | Part | What you do | Where |
+# |---|---|---|
+# | **0** | Judoor account, SSH key, SSH config, first login | your laptop terminal |
+# | **0** | Launch Jupyter-JSC, clone the repo, build the environment | JupyterLab terminal |
+# | **1** | Register the course kernel, then switch to it | this notebook |
+# | **2–12** | Filesystem, quotas, SLURM, a real job, your deliverable | this notebook |
+#
+# Part 1's first cells use only the Python standard library, so they work in whatever
+# kernel JupyterLab gives you. From section 2 onward every cell needs the course
+# kernel, and the first of them asserts that you actually switched.
+#
 # ## What this lab produces
 #
 # Four machine-checkable artifacts, all written by cells you run:
@@ -15,12 +33,8 @@
 # 4. A record in `results.json` written by `eo_course.results.record_run`, carrying
 #    your predictions and the outcomes you recorded.
 #
-# ## What it assumes
-#
-# Nothing except a Judoor account and a working SSH key. If you have not joined
-# `training2653`, do that first: <https://judoor.fz-juelich.de/projects/join/training2653>.
-# Approval is asynchronous and is not something the 2 hours in this lab can absorb,
-# so start it before the session, not during it.
+# Plus the thing every later lab depends on: a working kernel that is demonstrably the
+# course environment, checked by `sys.prefix` rather than by the name in a menu.
 #
 # ## You must run this yourself
 #
@@ -31,93 +45,33 @@
 # possible here: the cells below `assert`, and an `AssertionError` in your copy is
 # the lab telling you the thing you think you have is not what you have.
 #
-# **Run this notebook on JURECA**, inside a Jupyter-JSC session or over a Jupyter
-# server you started yourself. Cell 6 fails loudly if you are on a laptop.
+# If you have not joined `training2653`, start now:
+# <https://judoor.fz-juelich.de/projects/join/training2653>. Approval is asynchronous
+# and is not something the 2 hours in this lab can absorb.
 
 # %% [markdown]
-# ## 1. Setup
+# ## 0. From no account to a JupyterLab tab
 #
-# One import block, one seed, one place where paths come from. `eo_course.paths`
-# resolves every directory from environment variables, so this notebook contains no
-# hard-coded absolute paths and cannot accidentally point at another student's data.
-
-# %%
-from __future__ import annotations
-
-import os
-import shutil
-import socket
-import subprocess
-import sys
-import time
-from pathlib import Path
-
-import numpy as np
-
-from eo_course import gates, paths, results
-
-SEED = 20260115
-# One RNG for the whole notebook, per the course rule. Lab 1 has no stochastic step,
-# so it is created here and unused; later labs pass it down instead of calling
-# np.random.* directly, which is what made the 2025/26 outputs irreproducible.
-rng = np.random.default_rng(SEED)
-
-print(paths.describe())
-
-# %%
-def run(cmd, cwd=None):
-    """Run a command, echo it, capture stdout/stderr, return the CompletedProcess.
-
-    Every shell interaction in this lab goes through here. `subprocess.run` takes an
-    explicit `cwd`, which is the property IPython's `!` operator does not have: each
-    `!` line is its own `/bin/sh -c` process, so a `!cd` on one line cannot affect
-    the next. Lab 2 demonstrates that failure in detail.
-    """
-    proc = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
-    printable = cmd if isinstance(cmd, str) else " ".join(cmd)
-    print(f"$ {printable}" + (f"    [cwd={cwd}]" if cwd else ""))
-    if proc.stdout.strip():
-        print(proc.stdout.rstrip())
-    if proc.stderr.strip():
-        print("[stderr] " + proc.stderr.rstrip())
-    if proc.returncode != 0:
-        print(f"[returncode] {proc.returncode}")
-    return proc
-
-# %% [markdown]
-# ## 2. Are you actually on JURECA?
+# **There are no cells in this section.** Everything here happens either in a terminal
+# on your laptop or in the JupyterLab terminal, and you do not need to run anything in
+# the notebook until the end of 0.6.
 #
-# This is not pedantry. The 2025/26 Lab 2 contained a cell titled "HPC Environment
-# Check" whose stored output was `Hostname: jrlogin04.jureca`, while the architecture
-# diagram two cells earlier claimed the notebook ran on a compute node. One of the
-# two was wrong, nobody noticed, and the labs that followed did multi-gigabyte raster
-# I/O on the machine the check was supposed to be verifying.
-
-# %%
-HOST = socket.gethostname()
-
-print(f"hostname      : {HOST}")
-print(f"user          : {paths.username()}")
-print(f"on JURECA     : {paths.on_jureca()}")
-print(f"login node    : {paths.on_login_node()}")
-print(f"SLURM_JOB_ID  : {os.environ.get('SLURM_JOB_ID', 'unset (notebook not inside a SLURM job)')}")
-print(f"python        : {sys.executable}")
-
-assert paths.on_jureca(), (
-    "This notebook must run on JURECA. eo_course.paths could not find cluster storage.\n"
-    f"  resolved scratch root: {paths.scratch_root()}\n"
-    f"  resolved project root: {paths.project_root()}\n"
-    "Start a Jupyter-JSC session (https://jupyter-jsc.fz-juelich.de, System=JURECA, "
-    f"Project={paths.PROJECT_ACCOUNT}) and open this notebook there."
-)
-
-# %% [markdown]
-# ## 3. Judoor, SSH keys, and the `from=` restriction
+# ### 0.0 Why this is not a cell
 #
-# Do these steps **on your own laptop**, not in this notebook. They are the only
-# parts of Lab 1 that cannot be executed from a Jupyter cell.
+# Parts of this section cannot be executed from a Jupyter cell at all, and pretending
+# otherwise is what made the 2025/26 edition unrunnable:
 #
-# ### 3.1 Register and join
+# * `ssh-keygen`, the Judoor web forms and `~/.ssh/config` are on your **laptop**. The
+#   notebook runs on the cluster, on the far side of the very login you are trying to
+#   establish.
+# * `git clone` and `uv sync` need a **login shell** and network access to PyPI. A
+#   notebook `!` line is neither a login shell nor the same shell twice in a row.
+# * The kernel you would run those cells with does not exist yet. The 2025/26 Lab 1
+#   opened with `from eo_course import paths` — a package that lives in a repository
+#   you had not been given the URL for and an environment nothing had built. The
+#   notebook could not be run from the top by anyone, on any machine, ever.
+#
+# ### 0.1 Register and join
 #
 # 1. Register at <https://judoor.fz-juelich.de/register>. Use your university email.
 # 2. Verify your email address.
@@ -126,7 +80,7 @@ assert paths.on_jureca(), (
 #    not instantaneous, and it is the single most common reason a student cannot
 #    start Lab 2.
 #
-# ### 3.2 Generate a key pair
+# ### 0.2 Generate a key pair
 #
 # ```bash
 # ssh-keygen -t ed25519 -C "you@your-institution" -f ~/.ssh/jureca_key
@@ -139,7 +93,7 @@ assert paths.on_jureca(), (
 # the matching private one by signing a challenge. There is no password on the wire,
 # which is why JSC disables password authentication for these accounts.
 #
-# ### 3.3 Upload the key **with** the `from=` option — and know what it does
+# ### 0.3 Upload the key **with** the `from=` option — and know what it does
 #
 # In Judoor, under "JURECA Manage SSH-Keys", the key line has the form
 #
@@ -172,7 +126,7 @@ assert paths.on_jureca(), (
 # Either connect from inside the range, or update the range in Judoor to the one
 # Judoor suggests for your current location.
 #
-# ### 3.4 SSH client config — **required**, not optional
+# ### 0.4 SSH client config — **required**, not optional
 #
 # The 2025/26 lab listed "Configured SSH config file" as an *optional* deliverable
 # while its very next step was `ssh jureca`. That alias only resolves because of
@@ -198,6 +152,323 @@ assert paths.on_jureca(), (
 # ```bash
 # ssh jureca 'hostname; echo $USER; sinfo --version'
 # ```
+#
+# That command is the test. If it prints a hostname, a username and a SLURM version,
+# Part 0 is done and you never need to touch your laptop again for this course.
+#
+# ### 0.5 Launch Jupyter-JSC
+#
+# 1. Open <https://jupyter-jsc.fz-juelich.de> and log in with **Judoor**.
+# 2. In the job form choose **System: JURECA**, **Project: training2653**, and a
+#    wall-clock time that covers the lab.
+# 3. For the interactive partition, **read the form's own list** and pick the JURECA-DC
+#    interactive entry it offers you. Do not type a name from memory.
+# 4. Click **Start**, wait for the job to leave `PENDING`, then **Connect**.
+#
+# The 2025/26 notebook told students to set **Partition: `login`**. `login` is not a
+# JURECA partition — login nodes are not scheduled by SLURM at all — and it directly
+# contradicted Lab 1, which only ever named `dc-cpu` and `dc-gpu`. A student who typed
+# it got a form validation error with no explanation.
+#
+# You land in JupyterLab. **Open a terminal**: Launcher → Terminal. Everything in 0.6
+# happens there, not in a notebook cell, for reasons that are worth stating now
+# because Lab 2 spends a whole section proving them:
+#
+# * A notebook `!` line is handed to `/bin/sh -c` in a **new process for every line**.
+#   A `cd` on one line cannot affect the next, and `source activate` cannot work at
+#   all (`source` is a bash builtin and `/bin/sh` is usually dash).
+# * `module` is a **shell function** defined by modulecmd's shell hook, not a program
+#   on `PATH`. `!module load Python` fails with `module: command not found` while the
+#   identical line works in this terminal.
+#
+# ### 0.6 Clone the repository and build the environment
+#
+# Still in the terminal:
+#
+# ```bash
+# mkdir -p "$PROJECT_training2653/$USER/repos"
+# cd "$PROJECT_training2653/$USER/repos"
+# git clone https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers
+# cd RAF622M-ML-for-EO-with-Supercomputers
+# bash scripts/bootstrap_course_env.sh
+# ```
+#
+# Note the path: **project** space, not `~/repos`. Home on JURECA is ~50 GB and is
+# *backed up*, so anything you put there is copied into the nightly backup forever.
+# The repository itself is small, but it is where the later labs look for you, and
+# `bootstrap_course_env.sh` puts the multi-gigabyte environment next to it. If your
+# project variable is named differently (another training project), `env | grep
+# PROJECT_` prints it; substitute it in the two lines above and in `ACCOUNT` below.
+#
+# The clone URL is the real one, taken from this repository's own `git remote -v`. The
+# 2025/26 clone cell pointed at a placeholder organisation and a repository name that
+# has never existed on GitHub, and no page anywhere in that edition gave students the
+# real URL — so "clone the course repository" was **unachievable as written**, and the
+# only symptom was `repository not found`. Fork it on GitHub if you intend to push;
+# clone the upstream if you only need to read and run.
+#
+# `bootstrap_course_env.sh` installs `uv` for your user, puts a **self-contained**
+# CPython in your scratch directory, and builds the virtualenv in **project** space
+# from `pyproject.toml` + `uv.lock`. It takes a few minutes and ends with
+# `BOOTSTRAP_OK`. Two things it is doing that look arbitrary and are not:
+#
+# * **A uv-managed interpreter, not `module load Python`.** A virtualenv built on a
+#   module-backed CPython keeps a dynamic dependency on `libpython3.13.so.1.0` inside
+#   the module tree. It runs in the shell that loaded the module and dies with
+#   `cannot open shared object file` anywhere else — including in a Jupyter kernel, and
+#   including next term when the site is re-staged. That is exactly how the 2025/26
+#   environment died and a whole cohort inherited a broken venv.
+# * **The environment in project space, not `$HOME`.** Home is ~50 GB and *backed up*,
+#   so a multi-gigabyte venv there eats your quota and gets copied into the nightly
+#   backup forever.
+#
+# It must run on a **login node**: JURECA compute nodes have no route to PyPI, and
+# `uv sync` there dies with `tcp connect error: No route to host (os error 113)`. A
+# Jupyter-JSC session is a login-node process, which is why this terminal is the right
+# place.
+#
+# If it ends with `BOOTSTRAP_OK`, continue. Nothing below works until it does.
+
+# %% [markdown]
+# ## 1. Register the kernel
+#
+# The cells from here on are the first ones you actually run. They use **only the
+# Python standard library**, so they work in whatever kernel JupyterLab gave you —
+# which is the point, because the course kernel does not exist until one of them
+# creates it.
+#
+# `python -m ipykernel install --user` writes a small JSON directory into
+# `$HOME/.local/share/jupyter/kernels`. A few kilobytes, so home is the right place for
+# it — unlike the environment itself, which is gigabytes. The 2025/26 lab blurred the
+# two and put both in home.
+
+# %%
+# Standard library only. This cell must run before the course environment is a kernel.
+from __future__ import annotations
+
+import json
+import os
+import shutil
+import socket
+import subprocess
+import sys
+from pathlib import Path
+
+ACCOUNT = os.environ.get("EO_COURSE_ACCOUNT", "training2653")
+REPO_NAME = "RAF622M-ML-for-EO-with-Supercomputers"
+
+
+def run(cmd, cwd=None):
+    """Run a command, echo it, capture stdout/stderr, return the CompletedProcess.
+
+    `subprocess.run` takes an explicit `cwd`, which is the property IPython's `!`
+    operator does not have: each `!` line is its own `/bin/sh -c` process, so a `!cd`
+    on one line cannot affect the next.
+    """
+    proc = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+    printable = cmd if isinstance(cmd, str) else " ".join(map(str, cmd))
+    print(f"$ {printable}" + (f"    [cwd={cwd}]" if cwd else ""))
+    if proc.stdout.strip():
+        print(proc.stdout.rstrip())
+    if proc.stderr.strip():
+        print("[stderr] " + proc.stderr.rstrip())
+    if proc.returncode != 0:
+        print(f"[returncode] {proc.returncode}")
+    return proc
+
+
+host = socket.gethostname()
+acct_env = ACCOUNT.replace("-", "_")
+project_root = Path(os.environ.get(f"PROJECT_{acct_env}") or f"/p/project1/{ACCOUNT}")
+venv = Path(os.environ.get("EO_COURSE_VENV") or project_root / os.environ["USER"] / "envs" / "ml_eo_course")
+
+print(f"hostname : {host}")
+print(f"user     : {os.environ['USER']}")
+print(f"account  : {ACCOUNT}")
+print(f"repo     : {project_root / os.environ['USER'] / 'repos' / REPO_NAME}")
+print(f"venv     : {venv}")
+print(f"kernel   : {sys.executable}")
+
+# %%
+# Fail here, with instructions, rather than in section 2 with an ImportError.
+assert Path("/p/scratch").is_dir() and ("jureca" in host or "jrlogin" in host), (
+    f"This notebook must run on JURECA; you are on {host!r}. "
+    f"Start a Jupyter-JSC session (https://jupyter-jsc.fz-juelich.de, System=JURECA, "
+    f"Project={ACCOUNT}) and open it there."
+)
+assert (venv / "bin" / "python").is_file(), (
+    f"No course environment at {venv}.\n"
+    "You skipped step 0.6. In the JupyterLab terminal:\n"
+    f"  cd {project_root / os.environ['USER'] / 'repos' / REPO_NAME}"
+    " && bash scripts/bootstrap_course_env.sh\n"
+    "It must end with BOOTSTRAP_OK."
+)
+print(f"OK: environment present at {venv}")
+print(run([str(venv / "bin" / "python"), "-c",
+           "import sys; print('  ', sys.version.split()[0], sys.prefix)"]))
+
+# %% [markdown]
+# ### 1.1 Clear any stale spec, then register
+#
+# `--user` refuses to overwrite, and a kernel spec left by an earlier course run may be
+# a **symlink into a virtualenv that no longer exists**. ipykernel happily writes
+# through such a symlink, and Jupyter then offers a kernel that dies on contact — which
+# is what the 2025/26 cohort saw, with nothing in the UI to explain it.
+
+# %%
+KDIR = Path.home() / ".local" / "share" / "jupyter" / "kernels" / "ml_eo_course"
+if KDIR.is_symlink() or KDIR.exists():
+    print(f"removing existing kernel spec: {KDIR}"
+          + (f" -> {KDIR.resolve()}" if KDIR.is_symlink() else ""))
+    if KDIR.is_dir() and not KDIR.is_symlink():
+        shutil.rmtree(KDIR)
+    else:
+        KDIR.unlink()
+
+reg = run([str(venv / "bin" / "python"), "-m", "ipykernel", "install", "--user",
+           "--name", "ml_eo_course", "--display-name", "ML-EO Course"])
+assert reg.returncode == 0, "kernel registration failed; read the stderr above"
+assert KDIR.is_dir() and not KDIR.is_symlink(), f"{KDIR} is not a real directory"
+assert (KDIR / "kernel.json").is_file(), "kernel.json was not written"
+print((KDIR / "kernel.json").read_text())
+
+# %% [markdown]
+# ### 1.2 Why the kernel needs `-E` before it will start on Jupyter-JSC
+#
+# Registering is not enough, and this is the single most common reason a kernel "will
+# not activate" on Jupyter-JSC. The kernel appears in the menu, you select it, and it
+# sits at **Starting…** forever. The server is not misconfigured — the kernel process
+# dies on contact, and the cause is an environment variable you never set.
+#
+# A Jupyter-JSC server runs with the `JupyterLab` module loaded, and that module
+# exports a `PYTHONPATH` pointing at its own site-packages, built for **Python 3.13**.
+# Your kernel is **Python 3.12**, and a kernel inherits the server's environment. So
+# `import zmq` finds the server's cp313 PyZMQ instead of the one in your venv, cannot
+# load the compiled backend, and the kernel exits before it can speak to the server:
+#
+# ```
+# File ".../PyZMQ/27.1.0-GCCcore-14.3.0/lib/python3.13/site-packages/zmq/backend/__init__.py", line 30
+#     raise original_error from None
+# ```
+#
+# `python -E` tells the interpreter to ignore `PYTHONPATH` (and `PYTHONHOME`), so the
+# kernel uses only its own venv. The general rule for virtualenvs on a module system:
+# **the environment that works in your shell is not the environment your kernel gets.**
+# `LD_LIBRARY_PATH` is *not* the culprit here — only `PYTHONPATH` is, which is why the
+# fix is `-E` rather than scrubbing the whole environment.
+#
+# The cell patches the spec in place and is idempotent, so re-running it is harmless.
+
+# %%
+spec_path = KDIR / "kernel.json"
+spec = json.loads(spec_path.read_text())
+argv = [a for a in spec["argv"] if a != "-E"]
+argv.insert(1, "-E")  # immediately after the interpreter
+spec["argv"] = argv
+spec_path.write_text(json.dumps(spec, indent=1) + "\n")
+print(spec_path.read_text())
+assert spec["argv"][1] == "-E", "failed to add -E to the kernel argv"
+
+# %%
+# Prove the diagnosis instead of asserting it. Run the kernel's own interpreter twice
+# under the server's PYTHONPATH: once as ipykernel would have installed it, once with
+# -E. The first must fail, the second must work. If the first one *succeeds*, the site
+# has changed and this section needs a second look.
+PROBE = f"""
+module purge >/dev/null 2>&1
+module load Stages/2026 GCCcore/14.3.0 Python/3.13.5 JupyterLab >/dev/null 2>&1 || true
+if [ -z "${{PYTHONPATH:-}}" ]; then
+    echo "SKIP: no module PYTHONPATH on this host, nothing to demonstrate"
+else
+    echo "PYTHONPATH head: ${{PYTHONPATH%%:*}}"
+    echo "--- without -E ---"
+    {venv / "bin" / "python"} -c "import zmq" 2>&1 | tail -2 || true
+    echo "--- with -E ---"
+    {venv / "bin" / "python"} -E -c "import zmq; print('OK zmq', zmq.__version__, 'libzmq', zmq.zmq_version())"
+fi
+"""
+ab = run(["bash", "-lc", PROBE])
+assert ab.returncode == 0, "the kernel interpreter cannot import zmq even with -E"
+assert "OK zmq" in ab.stdout, "the -E probe did not report success"
+if "SKIP" not in ab.stdout:
+    print("\nThat first failure is exactly why a kernel sits at 'Starting...' forever.")
+
+# %% [markdown]
+# ### 1.3 Switch to the new kernel
+#
+# In JupyterLab: **Kernel → Change Kernel → ML-EO Course**, then **Run → Restart Kernel
+# and Run All Above** … or simply re-run section 1 and continue.
+#
+# Until you do, you are still typing in whatever kernel the notebook started with, and
+# the import at the top of section 2 fails. **That failure is the gate — it is supposed
+# to fail.** Do not "fix" it by installing `eo_course` into the default kernel; that is
+# how people end up with two half-installed environments and no idea which one a later
+# lab is using.
+
+# %% [markdown]
+# ## 2. Setup, in the course kernel
+#
+# One import block, one seed, one place where paths come from. `eo_course.paths`
+# resolves every directory from environment variables, so this notebook contains no
+# hard-coded absolute paths and cannot accidentally point at another student's data.
+#
+# If this cell raises `ModuleNotFoundError: No module named 'eo_course'`, you have not
+# switched kernels yet. See section 1.3.
+
+# %%
+import time
+
+import numpy as np
+
+from eo_course import gates, paths, results
+
+print(f"sys.executable = {sys.executable}")
+print(f"sys.prefix     = {sys.prefix}")
+print(f"expected       = {venv}")
+assert Path(sys.prefix).resolve() == venv.resolve(), (
+    "You are NOT in the course environment.\n"
+    f"  running : {sys.prefix}\n"
+    f"  expected: {venv}\n"
+    "Kernel -> Change Kernel -> ML-EO Course, then re-run section 1 and this cell. "
+    "Every later lab assumes this interpreter."
+)
+print("OK: the kernel you are typing in is the course environment.\n")
+
+# %%
+SEED = 20260115
+# One RNG for the whole notebook, per the course rule. Lab 1 has no stochastic step,
+# so it is created here and unused; later labs pass it down instead of calling
+# np.random.* directly, which is what made the 2025/26 outputs irreproducible.
+rng = np.random.default_rng(SEED)
+
+print(paths.describe())
+
+# %% [markdown]
+# ## 3. Are you actually on JURECA?
+#
+# This is not pedantry. The 2025/26 Lab 2 contained a cell titled "HPC Environment
+# Check" whose stored output was `Hostname: jrlogin04.jureca`, while the architecture
+# diagram two cells earlier claimed the notebook ran on a compute node. One of the
+# two was wrong, nobody noticed, and the labs that followed did multi-gigabyte raster
+# I/O on the machine the check was supposed to be verifying.
+
+# %%
+HOST = socket.gethostname()
+
+print(f"hostname      : {HOST}")
+print(f"user          : {paths.username()}")
+print(f"on JURECA     : {paths.on_jureca()}")
+print(f"login node    : {paths.on_login_node()}")
+print(f"SLURM_JOB_ID  : {os.environ.get('SLURM_JOB_ID', 'unset (notebook not inside a SLURM job)')}")
+print(f"python        : {sys.executable}")
+
+assert paths.on_jureca(), (
+    "This notebook must run on JURECA. eo_course.paths could not find cluster storage.\n"
+    f"  resolved scratch root: {paths.scratch_root()}\n"
+    f"  resolved project root: {paths.project_root()}\n"
+    "Start a Jupyter-JSC session (https://jupyter-jsc.fz-juelich.de, System=JURECA, "
+    f"Project={paths.PROJECT_ACCOUNT}) and open this notebook there."
+)
 
 # %% [markdown]
 # ## 4. The filesystem, with the numbers that matter
@@ -911,12 +1182,17 @@ print(results.summary_table("lab1"))
 #
 # ### What to bring to Lab 2
 #
-# Lab 2 launches Jupyter-JSC, clones the course repository, and builds the course
-# virtual environment in `paths.user_project("envs")` — which is why `envs/` had to be
-# created here. It also spends real time on one idea this lab only touched: each
-# `!` line in a notebook is a separate `/bin/sh -c` process, which is why the 2025/26
-# Lab 2's clone, its `source activate`, and its git branching demo all silently did
-# nothing.
+# You arrive in Lab 2 with the environment already working, which is the point of this
+# ordering: Lab 2 opens by *verifying* what you built here (its section 5) and then
+# spends its time on Git, which is what it is actually for. It also spends real time on
+# one idea this lab only touched: each `!` line in a notebook is a separate `/bin/sh -c`
+# process, which is why the 2025/26 Lab 2's clone, its `source activate`, and its git
+# branching demo all silently did nothing.
+#
+# Keep three things from this lab, because Lab 2 asserts on them: the clone at
+# `paths.user_project("repos")`, the environment at `paths.user_project("envs")` (which
+# is why `envs/` had to be created here), and the `ML-EO Course` kernel with `-E` in its
+# argv.
 #
 # ### Support
 #
