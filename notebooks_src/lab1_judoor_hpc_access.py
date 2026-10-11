@@ -918,12 +918,32 @@ def job_record(job_id: str) -> dict:
     `--parsable2` gives a `|`-delimited line with no trailing pipe, so the field
     count is stable. We match on the job id with any `.step` suffix stripped, and
     take the row whose first field is exactly our id (not `8123.batch`).
+
+    Two things this cell got wrong in an earlier draft, both worth naming because
+    they are the general shape of the bug this whole course is about:
+
+    * `--state=all` is **not** a valid sacct value. It dies with
+      `sacct: fatal: unrecognized job state value 'all'` and prints nothing, so
+      every poll looked like "the job has not started yet". Valid values are real
+      state names; you do not need one here, because sacct's default window already
+      covers a job you just submitted.
+    * A non-zero exit status was being read as an empty result. That converts a
+      fatal error into a plausible-looking wait, and 300 seconds later you are told
+      the *cluster* was slow. Always check `returncode` before parsing stdout.
     """
     fmt = "JobID,JobName,Partition,AllocCPUS,AllocTRES,State,ExitCode,Submit,Start,End,Elapsed,MaxRSS,Reason"
+    # -S is explicit because sacct's default window starts at midnight, so a job
+    # submitted at 23:58 and polled at 00:02 would look like it never existed.
     p = subprocess.run(
-        ["sacct", "-X", "-j", job_id, "--noheader", "--parsable2", f"--format={fmt}", "--state=all"],
+        ["sacct", "-X", "-j", job_id, "-S", "now-1day",
+         "--noheader", "--parsable2", f"--format={fmt}"],
         capture_output=True, text=True,
     )
+    if p.returncode != 0:
+        raise RuntimeError(
+            f"sacct failed (exit {p.returncode}): {p.stderr.strip() or p.stdout.strip()}\n"
+            "This is a problem with the *command*, not with your job. Do not wait it out."
+        )
     cols = fmt.split(",")
     for line in p.stdout.strip().splitlines():
         f = line.split("|")
