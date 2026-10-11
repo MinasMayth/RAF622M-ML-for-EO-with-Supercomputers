@@ -226,14 +226,17 @@ print("Fill in PREDICTION, run this cell, then run the next one.")
 # %%
 ip = get_ipython()  # noqa: F821
 
-# Exactly what `!cd /tmp` compiles to. The shell prints nothing and exits.
-cd_status = ip.system("cd /tmp")
-# Exactly what `!pwd` compiles to, in a NEW shell that never saw the cd.
-printed_pwd = ip.system("pwd")
-actual = ip.getoutput("pwd").strip()
+# Exactly what `!cd /tmp` compiles to. The shell prints nothing and exits. Note that
+# `system()` returns None, not the exit status, so we ask the shell for `$?` inside the
+# same command to see the status at all.
+cd_out = ip.getoutput("cd /tmp; echo RC=$?", split=False).strip()
+cd_status = cd_out.rsplit("RC=", 1)[-1]
+# Exactly what `!pwd` compiles to, in a NEW shell that never saw the cd. `system()`
+# prints the output and returns None; `getoutput()` returns lines, so index [0].
+ip.system("pwd")
+actual = ip.getoutput("pwd")[0]
 
 print(f"\n`cd /tmp` exit status: {cd_status}   (it succeeded — in its own process)")
-print(f"`pwd` exit status    : {printed_pwd}")
 print(f"the shell's cwd was  : {actual}")
 print(f"you predicted        : {PREDICTION['pwd_after_cd']!r}")
 assert Path(actual) != Path("/tmp"), "the cd would have had to persist, and it cannot"
