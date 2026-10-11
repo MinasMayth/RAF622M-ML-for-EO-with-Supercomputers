@@ -444,17 +444,38 @@ print("\nAlways the second form. For course packages, prefer `uv add` in the ter
 # ### The optional Google Earth Engine extra
 #
 # `geemap` and `earthengine-api` are an optional extra (`gee`) because Lab 3 also works
-# through the Copernicus Data Space API. Install it only if you are taking that path.
-# It runs `uv sync` in the repository, which needs a login node — compute nodes have no
-# route to PyPI — and a Jupyter-JSC session is a login-node process.
+# through the Copernicus Data Space API. **Install it only if you are taking that
+# path.** It pulls in a few hundred megabytes of geemap and its dependencies, and on a
+# login node that is several minutes you do not need if you are using Copernicus.
+#
+# So the cell below does nothing until you set `WANT_GEE = True`. That is deliberate: a
+# notebook that installs a third of a gigabyte because it was run top-to-bottom is a
+# notebook that gets blamed for being slow.
+#
+# `uv sync` has to run on a login node — compute nodes have no route to PyPI — and a
+# Jupyter-JSC session is a login-node process, so from this notebook it works.
 
 # %%
-gee = run(["bash", "-lc", f"cd {REPO} && UV_PROJECT_ENVIRONMENT={VENV} uv sync --frozen --extra gee"])
-if gee.returncode == 0:
-    check = run([str(VENV / "bin" / "python"), "-c", "import geemap, ee; print('geemap', geemap.__version__)"])
-    assert check.returncode == 0, "gee extra installed but geemap still does not import"
+WANT_GEE = False  # set True only if Lab 3 will use Google Earth Engine
+
+if WANT_GEE:
+    gee = run(["bash", "-lc",
+               f"cd {REPO} && UV_PROJECT_ENVIRONMENT={VENV} uv sync --frozen --extra gee"])
+    if gee.returncode == 0:
+        gee_check = run([str(VENV / "bin" / "python"),
+                         "-c", "import geemap, ee; print('geemap', geemap.__version__)"])
+        assert gee_check.returncode == 0, "gee extra installed but geemap still does not import"
+    else:
+        print("gee extra failed to install. Fine if you are using the Copernicus Data "
+              "Space API in Lab 3; otherwise read the uv output above.")
 else:
-    print("gee extra skipped. Fine if you are using the Copernicus Data Space API in Lab 3.")
+    # `gee` is reported in the deliverable record, so give it a returncode without
+    # having run anything. returncode != 0 is what "not installed" means here.
+    gee = None
+    print("gee extra NOT installed (WANT_GEE is False). That is the right default if "
+          "you are using the Copernicus Data Space API in Lab 3.")
+    print("Set WANT_GEE = True above and re-run this cell if you need Google Earth "
+          "Engine. It takes a few minutes.")
 
 # %% [markdown]
 # ## 6. Matplotlib, and the fix that was applied too late
@@ -483,11 +504,11 @@ import matplotlib  # noqa: E402
 import matplotlib.pyplot as plt  # noqa: E402
 
 print(f"matplotlib   = {matplotlib.__version__}")
-print(f"resolved cache dir = {matplotlib.get_config_dir()}")
-assert Path(matplotlib.get_config_dir()).resolve() == Path(mpl_dir).resolve(), (
+print(f"resolved cache dir = {matplotlib.get_configdir()}")
+assert Path(matplotlib.get_configdir()).resolve() == Path(mpl_dir).resolve(), (
     "MPLCONFIGDIR was not honoured — it was set after the import, or is not writable"
 )
-assert "/tmp" not in matplotlib.get_config_dir(), "matplotlib fell back to /tmp"
+assert "/tmp" not in matplotlib.get_configdir(), "matplotlib fell back to /tmp"
 print("OK: cache dir is in your scratch space, set before the import.")
 
 # %%
@@ -917,8 +938,8 @@ check("repo_at_expected_path", (REPO / ".git").is_dir(), str(REPO))
 check("git_identity_sane", identity_ok, f"{cfg_name!r} <{cfg_email!r}>")
 check("commit_authored_by_you", identity_ok and author.endswith(f"<{cfg_email}>"),
       f"last commit author {author!r}")
-check("mplconfigdir_before_import", "/tmp" not in matplotlib.get_config_dir(),
-      matplotlib.get_config_dir())
+check("mplconfigdir_before_import", "/tmp" not in matplotlib.get_configdir(),
+      matplotlib.get_configdir())
 check("artifacts_not_committable", ci2.returncode == 0, "tif/npz excluded from git status")
 check("branch_demo_persisted", after_branch == BRANCH, f"branch {after_branch!r}")
 check("conflict_exercised", "UU" in codes, f"status codes {codes}")
@@ -995,8 +1016,8 @@ lab2_config = {
     "git_email": cfg_email,
     "branch": BRANCH,
     "commit": after_head[:8],
-    "mplconfigdir": matplotlib.get_config_dir(),
-    "gee_extra_installed": gee.returncode == 0,
+    "mplconfigdir": matplotlib.get_configdir(),
+    "gee_extra_installed": gee is not None and gee.returncode == 0,
     "conflict_status_codes": codes,
     "data_synthetic": SYNTHETIC,
     "exercise_done": EXERCISE_DONE,
