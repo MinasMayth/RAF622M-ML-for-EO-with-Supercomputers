@@ -9,22 +9,30 @@
 # cell runs `pytest tests -q` against your clone and refuses to let the notebook
 # finish if it is red. Everything before it exists to make that run possible:
 #
-# 1. The course virtual environment, in **project** space, built by `uv` from
-#    `pyproject.toml` + `uv.lock`, registered as a Jupyter kernel.
-# 2. Proof that the kernel you are typing in *is* that environment — by comparing
-#    `sys.prefix` to the path, not by trusting the name in the menu.
-# 3. The course repository cloned to a path the later labs can find.
-# 4. A Git identity that is not the literal string `"Your Name"`, verified.
+# 1. Verified proof that the environment Lab 1 built is present, runs **unaided**, and
+#    *is* the kernel you are typing in — judged by `sys.prefix`, not by the menu name.
+# 2. The course repository confirmed present at the path the later labs look for.
+# 3. A Git identity that is not the literal string `"Your Name"`, verified.
 # 5. A Git workflow that demonstrably changes branches and commits, asserted after
 #    every step.
 # 6. A `results.json` record carrying your predictions and their outcomes.
 #
 # ## What it assumes from Lab 1
 #
-# A Judoor account in `training2653`, a working SSH key, and the workspace layout
-# (`repos/`, `envs/`, `scripts/`, `logs/`, `results/`) under your project space. If
-# you skipped Lab 1's layout cell, the clone in section 5 will create the parents for
-# you, but `envs/` is where your environment must live, so make sure it exists.
+# Everything environment-related. Lab 1 ends with you logged into Jupyter-JSC, the
+# repository cloned in **project** space, `scripts/bootstrap_course_env.sh` finished
+# with `BOOTSTRAP_OK`, the `ML-EO Course` kernel registered with `-E` in its argv, and
+# this notebook switched onto that kernel.
+#
+# Section 5 verifies each of those and names the Lab 1 step to re-run if one is
+# missing. It deliberately does **not** rebuild them. The 2025/26 edition carried a
+# second, slightly different copy of the whole setup in Lab 2, and the two drifted
+# apart — so a student following Lab 1 then Lab 2 got two contradictory sets of
+# instructions for the same task, and whichever they ran second could quietly undo the
+# first. One notebook owns setup; this one checks it.
+#
+# You also need Lab 1's workspace layout (`repos/`, `envs/`, `scripts/`, `logs/`,
+# `results/`) under your project space, which Lab 1 section 6 creates.
 #
 # ## You must run this yourself
 #
@@ -38,11 +46,14 @@
 # %% [markdown]
 # ## 1. Setup
 #
-# `eo_course` is the course toolkit, and it lives in the repository you are about to
-# clone. So this first cell has a bootstrap problem: it needs `paths` before the
-# environment exists. We resolve it by walking up from the notebook's directory until
-# we find the package, and we say out loud that this is bootstrap-only — it is *not*
-# the same thing as the package being installed, which is what section 8 checks.
+# `eo_course` is the course toolkit, and it lives in the repository you cloned in Lab
+# 1. If you opened this notebook from that clone in the ML-EO Course kernel, the import
+# below is trivially satisfied. The walk-up-from-cwd loop is kept anyway, because a
+# student who opens this notebook in the *default* kernel has `eo_course` on disk but
+# not installed, and without the loop that is a bare `ModuleNotFoundError` with no hint
+# about which of the two problems they have. It is bootstrap-only — it is *not* the
+# same claim as "the package is installed in this interpreter", which is what section 5
+# asserts.
 
 # %%
 from __future__ import annotations
@@ -285,273 +296,84 @@ print(
     "\nIf either is empty or wrong, set it yourself in the JupyterLab terminal:\n"
     "  git config --global user.name \"Your Real Name\"\n"
     "  git config --global user.email \"you@your-institution\"\n"
-    "then re-run this cell and the check in section 12."
+    "then re-run this cell and the gate board in section 11."
 )
 
 # %% [markdown]
-# ## 5. Cloning the course repository
+# ## 5. Verify the environment Lab 1 built (this is the gate)
 #
-# The 2025/26 clone cell pointed at a placeholder organisation slug and a repository
-# name that has never existed on GitHub. No notebook, README, or docs page anywhere in
-# that edition gave students the real URL, so Lab 2's core deliverable — "clone the
-# course repository" — was **unachievable as written**. It was the single hardest
-# blocker in the set, and it produced no error message that pointed at the cause: just
-# `repository not found`.
+# Lab 1 owned the setup: you cloned the repository in a JupyterLab terminal, ran
+# `scripts/bootstrap_course_env.sh`, registered the kernel, and switched this notebook
+# to it. This section does not redo that work. It **checks** it, and names the exact
+# Lab 1 step to re-run when a check fails.
 #
-# The real URL is the one below, taken from this repository's own `git remote -v`.
-# Fork it on GitHub if you intend to push; clone the upstream if you only need to read
-# and run.
+# That ordering is the fix for the structural bug in the 2025/26 edition, which opened
+# Lab 1 with `from eo_course import paths` — a package living in a repository that Lab 2
+# had not yet given you the URL for — and then had Lab 2 rebuild everything Lab 1
+# claimed to have already built. Two notebooks, two copies of one setup, one of them
+# always stale.
+#
+# Four things are asserted here, in increasing order of how much they are worth:
+#
+# 1. The repository is at the path the later labs expect, and it is a real clone.
+# 2. The environment runs **unaided** — with no module-provided `LD_LIBRARY_PATH` or
+#    `PYTHONPATH`, because a kernel never has either.
+# 3. The kernel you are typing in *is* that environment, judged by `sys.prefix` rather
+#    than by the name in the menu. Names are cheap; `sys.prefix` is the interpreter
+#    actually executing this cell.
+# 4. The kernel spec still carries `-E`, so it will still start.
 
 # %%
 REPO = paths.user_project("repos") / REPO_NAME
-REPO.parent.mkdir(parents=True, exist_ok=True)
-print(f"target path: {REPO}")
+VENV = paths.user_project("envs") / "ml_eo_course"
+KDIR = Path.home() / ".local" / "share" / "jupyter" / "kernels" / "ml_eo_course"
+print(f"repo : {REPO}")
+print(f"venv : {VENV}")
 
-if (REPO / ".git").is_dir():
-    print("already cloned; fetching instead of cloning.")
-    git("fetch", "--all", "--prune", cwd=REPO)
-else:
-    p = run(["git", "clone", REPO_URL, str(REPO)])
-    assert p.returncode == 0, (
-        f"clone failed. URL: {REPO_URL}\n"
-        "Check the URL against the one the instructor posted, and check you have "
-        "access to the course GitHub organisation."
+if not (REPO / ".git").is_dir():
+    print(
+        "\nNo clone at that path. Lab 1 step 0.6 is a JupyterLab *terminal* command:\n"
+        f"  mkdir -p {REPO.parent} && cd {REPO.parent}\n"
+        f"  git clone {REPO_URL}\n"
+        f"  cd {REPO_NAME} && bash scripts/bootstrap_course_env.sh"
     )
-
-assert (REPO / ".git").is_dir(), f"{REPO} is not a git repository"
-assert (REPO / "eo_course" / "paths.py").is_file(), "cloned repo has no eo_course package"
+assert (REPO / ".git").is_dir(), f"{REPO} is not a git repository — Lab 1 step 0.6"
+assert (REPO / "eo_course" / "paths.py").is_file(), "this clone has no eo_course package"
 assert (REPO / "pyproject.toml").is_file() and (REPO / "uv.lock").is_file(), \
-    "cloned repo has no pyproject.toml/uv.lock — wrong repository?"
+    "clone has no pyproject.toml/uv.lock — wrong repository?"
 print(f"\nOK: repository at {REPO}")
 print(f"origin = {git_out('remote', 'get-url', 'origin', cwd=REPO)}")
 print(f"HEAD   = {git_out('rev-parse', '--short', 'HEAD', cwd=REPO)}  "
       f"branch {git_out('branch', '--show-current', cwd=REPO)}")
 
 # %% [markdown]
-# ## 6. Building the course environment with `uv`
+# ### Why "the venv exists" is the wrong check
 #
-# Three things the 2025/26 environment cell got wrong, each with a number attached:
+# The gate is not that the directory is there but that the interpreter inside it runs
+# **unaided**. This is the check whose absence cost the 2025/26 cohort a whole term.
+# Their environment was built on a module-backed CPython, so it kept a dynamic
+# dependency on `libpython3.12.so.1.0` inside the module tree. It worked perfectly in
+# the terminal that built it and died in every kernel with
+# `cannot open shared object file` — because a kernel is started by the Jupyter server,
+# which never ran `module load`.
 #
-# 1. **It put three virtualenvs in `$HOME`.** Home quota is ~50 GB and is backed up,
-#    which means every one of those environments was copied into the nightly backup.
-#    The same notebook's next-but-one cell printed a matplotlib warning proving home
-#    was not writable, and nobody connected the two. Environments go in **project**
-#    space: `paths.user_project("envs")`.
-# 2. **It activated the environment with `!source`.** Cannot work — see section 3.
-# 3. **It installed a hand-typed package list** (`pip install ipykernel numpy pandas
-#    matplotlib jupyterlab rasterio earthengine-api torch`). That list omitted
-#    `geemap`, which Lab 3 imported, and `lightning`, which Labs 5–7 import. It also
-#    ignored `uv.lock`, so two students running the same lab got two different
-#    dependency graphs.
-#
-# The correct path is `uv sync`, which reads `pyproject.toml` and installs exactly what
-# `uv.lock` pins. `geemap` and `earthengine-api` are an **optional extra** (`gee`)
-# because Lab 3 also works through the Copernicus Data Space API; install them only if
-# you are taking that path.
-#
-# One more mechanism worth knowing: `module` is a **shell function** defined by
-# modulecmd's shell hook, not a program on `PATH`. That is why `!module load Python`
-# fails with `module: command not found` while the same line works in a terminal and in
-# an `sbatch` script. Anything using `module` must run inside `bash -l -c`.
+# `bootstrap_course_env.sh` builds on a uv-managed interpreter in your scratch
+# directory, which has no dependency on the module tree at all. The cell below proves
+# that rather than asserting it, by clearing the two variables a login shell quietly
+# exports.
 
 # %%
-VENV = paths.user_project("envs") / "ml_eo_course"
-print(f"expected environment: {VENV}")
-
-which_uv = subprocess.run(["bash", "-lc", "command -v uv"], capture_output=True, text=True)
-if which_uv.returncode != 0:
-    print("`uv` not found. Install it (user-local, no root needed) with:\n"
-          "  curl -LsSf https://astral.sh/uv/install.sh | sh\n"
-          "then restart the kernel so PATH is refreshed.")
-else:
-    print(f"uv: {which_uv.stdout.strip()}")
-    print(subprocess.run(["bash", "-lc", "uv --version"], capture_output=True, text=True).stdout.strip())
-
-# %% [markdown]
-# ### Why a uv-managed interpreter, and not `module load Python`
-#
-# The tempting recipe is `module load Stages/2026 GCCcore/14.3.0 Python/3.13.5` and
-# then build the virtualenv on top of that. It builds, it even verifies, and then it
-# breaks the moment you stop watching it, for two separate reasons:
-#
-# 1. A venv created from a module-backed CPython keeps a **dynamic dependency on
-#    `libpython3.13.so.1.0` inside the module tree**. It runs in the shell that loaded
-#    the module and fails with `cannot open shared object file` anywhere else -- which
-#    includes the Jupyter kernel. Try it: build one this way, then run
-#    `env -u LD_LIBRARY_PATH $VENV/bin/python -c "import sys"` and watch it die.
-# 2. The module can be re-staged or retired underneath you. That is exactly how the
-#    2025/26 environment died: it was built against a `Python/3.12` that later
-#    disappeared, and a whole cohort inherited
-#    `libpython3.12.so.1.0: cannot open shared object file`.
-#
-# `uv python install` puts a self-contained CPython in your scratch directory. The
-# venv has no dependency on the module tree at all, so it survives module churn and
-# works in a kernel. That is the point of `UV_PYTHON` below.
-#
-# Note this cell runs `uv sync` **here**, in the notebook. Compute nodes have no route
-# to PyPI, so package installation belongs on a login node -- which is what a
-# Jupyter-JSC session is. Do not move this cell into a `srun` wrapper.
-
-# %%
-# Scratch, not home: the interpreter is ~150 MB, home is quota-limited and backed up.
-UV_PY_HOME = paths.user_scratch(".uv-python")
-print(f"uv-managed interpreter dir: {UV_PY_HOME}")
-
-SYNC = f"""
-set -euo pipefail
-export PATH="$HOME/.local/bin:$PATH"
-export UV_PYTHON_INSTALL_DIR="${{UV_PYTHON_INSTALL_DIR:-{UV_PY_HOME}}}"
-export UV_PYTHON="${{UV_PYTHON:-3.12}}"
-export UV_PROJECT_ENVIRONMENT={VENV}
-uv python install "$UV_PYTHON"
-uv sync --frozen
-echo "--- python in the environment ---"
-# -u LD_LIBRARY_PATH proves the interpreter is self-contained rather than quietly
-# inheriting libpython from whatever modules this shell happens to have loaded.
-env -u LD_LIBRARY_PATH "$UV_PROJECT_ENVIRONMENT/bin/python" -c "import sys; print(sys.version); print(sys.prefix)"
-"""
-sync = run(["bash", "-lc", SYNC], cwd=REPO)
-assert sync.returncode == 0, (
-    "uv sync failed. Read the output above. The two common causes on JURECA are a full "
-    "project quota (check Lab 1's quota cell) and running this from a compute node, "
-    "which has no route to PyPI; the error names whichever it is."
+assert (VENV / "bin" / "python").is_file(), (
+    f"No environment at {VENV}. Re-run Lab 1 step 0.6:\n"
+    f"  cd {REPO} && bash scripts/bootstrap_course_env.sh   # must end BOOTSTRAP_OK"
 )
-assert (VENV / "bin" / "python").is_file(), f"{VENV} was not created"
-print(f"\nOK: environment exists at {VENV}")
-
-# %%
-# The gate is not "the venv exists" but "the venv runs without help". A kernel does not
-# inherit your login shell's LD_LIBRARY_PATH, so neither may the environment.
-probe = run(["env", "-u", "LD_LIBRARY_PATH", str(VENV / "bin" / "python"),
-             "-c", "import sys; print(sys.prefix)"])
+probe = run(["env", "-u", "LD_LIBRARY_PATH", "-u", "PYTHONPATH",
+             str(VENV / "bin" / "python"), "-c", "import sys; print(sys.prefix)"])
 assert probe.returncode == 0, (
-    "The environment only works with module-provided libraries on LD_LIBRARY_PATH. "
-    "It will fail in Jupyter. Delete it and re-run the cell above so it is rebuilt "
-    "on the uv-managed interpreter."
+    f"{VENV} only works with module libraries on LD_LIBRARY_PATH, so it will fail in "
+    f"Jupyter. Remove it and rebuild:\n  rm -rf {VENV}\n  then re-run the bootstrap."
 )
 print("OK: the interpreter is self-contained and will work in a kernel.")
-
-# %% [markdown]
-# Optional, only if you are taking the Google Earth Engine path in Lab 3:
-
-# %%
-gee = run(["bash", "-lc", f"cd {REPO} && UV_PROJECT_ENVIRONMENT={VENV} uv sync --frozen --extra gee"])
-if gee.returncode == 0:
-    check = run([str(VENV / "bin" / "python"), "-c", "import geemap, ee; print('geemap', geemap.__version__)"])
-    assert check.returncode == 0, "gee extra installed but geemap still does not import"
-else:
-    print("gee extra skipped. Fine if you are using the Copernicus Data Space API in Lab 3.")
-
-# %% [markdown]
-# ## 7. Registering the kernel
-#
-# `python -m ipykernel install --user` writes a small JSON directory into
-# `$HOME/.local/share/jupyter/kernels`. That is a few kilobytes, so home is the right
-# place for it — unlike the environment itself, which is gigabytes. The 2025/26 lab
-# blurred the two and put both in home.
-#
-# **After running the next cell you must switch kernels.** In JupyterLab:
-# **Kernel → Change Kernel → ML-EO Course**, then re-run section 1 and continue. Until
-# you do, you are still typing in whatever kernel the notebook started with, and the
-# assertion in section 8 will fail. That failure is the gate; it is supposed to fail.
-
-# %%
-# `--user` refuses to overwrite, and a kernel spec left by an earlier course run may be
-# a *symlink into a virtualenv that no longer exists*. ipykernel happily writes through
-# such a symlink, and Jupyter then offers a kernel that dies on contact -- which is
-# what the 2025/26 cohort saw. Clear the old spec first.
-KDIR = Path.home() / ".local" / "share" / "jupyter" / "kernels" / "ml_eo_course"
-if KDIR.is_symlink() or KDIR.exists():
-    print(f"removing existing kernel spec: {KDIR}"
-          + (f" -> {KDIR.resolve()}" if KDIR.is_symlink() else ""))
-    if KDIR.is_dir() and not KDIR.is_symlink():
-        shutil.rmtree(KDIR)
-    else:
-        KDIR.unlink()  # a real file, or a symlink pointing at nothing
-
-reg = run([str(VENV / "bin" / "python"), "-m", "ipykernel", "install", "--user",
-           "--name", "ml_eo_course", "--display-name", "ML-EO Course"])
-assert reg.returncode == 0, "kernel registration failed"
-
-assert KDIR.is_dir() and not KDIR.is_symlink(), f"{KDIR} is not a real directory"
-assert (KDIR / "kernel.json").is_file(), "kernel.json was not written"
-
-# %% [markdown]
-# ### Why the kernel needs `-E` before it will start on Jupyter-JSC
-#
-# Registering the kernel is not enough. On JURECA it appears in the kernel menu, you
-# select it, and it sits at "Starting..." forever. The server is not misconfigured —
-# the kernel process dies on contact, and the reason is an environment variable you
-# never set.
-#
-# A Jupyter-JSC server runs with the `JupyterLab` module loaded, and that module
-# exports a `PYTHONPATH` pointing at its own site-packages — built for **Python 3.13**.
-# Your kernel is **Python 3.12**, and a kernel inherits the server's environment. So
-# `import zmq` finds the server's cp313 PyZMQ instead of the one in your venv, cannot
-# load the compiled backend, and the kernel exits before it can speak to the server:
-#
-# ```
-# File ".../PyZMQ/27.1.0-GCCcore-14.3.0/lib/python3.13/site-packages/zmq/backend/__init__.py", line 30
-#     raise original_error from None
-# ```
-#
-# `python -E` tells the interpreter to ignore `PYTHONPATH` (and `PYTHONHOME`), so the
-# kernel uses only its own venv. This is the general rule for virtualenvs on a module
-# system: **the environment that works in your shell is not the environment your kernel
-# gets.** Note `LD_LIBRARY_PATH` is *not* the culprit here — only `PYTHONPATH` is.
-#
-# The cell below patches the installed spec in place. It is idempotent, so re-running
-# it is harmless.
-
-# %%
-spec_path = KDIR / "kernel.json"
-spec = json.loads(spec_path.read_text())
-argv = [a for a in spec["argv"] if a != "-E"]
-argv.insert(1, "-E")  # immediately after the interpreter
-spec["argv"] = argv
-spec_path.write_text(json.dumps(spec, indent=1) + "\n")
-print(spec_path.read_text())
-
-assert spec["argv"][1] == "-E", "failed to add -E to the kernel argv"
-
-# %%
-# Prove the diagnosis instead of asserting it. Run the kernel's own interpreter twice
-# under the server's PYTHONPATH: once as ipykernel would have installed it, once with
-# -E. The first must fail, the second must work. If the first one *succeeds*, the site
-# has changed and this whole section needs a second look.
-PROBE = f"""
-module purge >/dev/null 2>&1
-module load Stages/2026 GCCcore/14.3.0 Python/3.13.5 JupyterLab >/dev/null 2>&1 || true
-if [ -z "${{PYTHONPATH:-}}" ]; then
-    echo "SKIP: no module PYTHONPATH on this host, nothing to demonstrate"
-else
-    echo "PYTHONPATH head: ${{PYTHONPATH%%:*}}"
-    echo "--- without -E ---"
-    {VENV / "bin" / "python"} -c "import zmq" 2>&1 | tail -2 || true
-    echo "--- with -E ---"
-    {VENV / "bin" / "python"} -E -c "import zmq; print('OK zmq', zmq.__version__, 'libzmq', zmq.zmq_version())"
-fi
-"""
-ab = run(["bash", "-lc", PROBE])
-assert ab.returncode == 0, (
-    "The kernel interpreter cannot import zmq even with -E. Read the output above."
-)
-assert "OK zmq" in ab.stdout, "the -E probe did not report success"
-if "SKIP" not in ab.stdout:
-    print("\nThat first failure is exactly why the kernel sat at 'Starting...' forever.")
-print("\nKernel is importable under the server's PYTHONPATH. Now switch this notebook")
-print("to **ML-EO Course** and re-run section 1, then continue.")
-
-kernels = run([str(VENV / "bin" / "python"), "-m", "jupyter", "kernelspec", "list"])
-assert "ml_eo_course" in kernels.stdout, "kernel not in the kernelspec list"
-print("\nKernel registered. Now switch this notebook to **ML-EO Course** and re-run "
-      "section 1, then continue.")
-
-# %% [markdown]
-# ## 8. Are you in the course environment? (this is the gate)
-#
-# The notebook menu says a kernel name. Names are cheap. `sys.prefix` is the truth: it
-# is the root of the interpreter that is actually executing this cell.
 
 # %%
 print(f"sys.executable = {sys.executable}")
@@ -563,9 +385,24 @@ assert Path(sys.prefix).resolve() == VENV.resolve(), (
     f"  running : {sys.prefix}\n"
     f"  expected: {VENV}\n"
     "In JupyterLab: Kernel -> Change Kernel -> ML-EO Course, then restart and re-run "
-    "from section 1. Do not skip this; every later lab assumes this interpreter."
+    "from section 1. If ML-EO Course is not in that menu, re-run Lab 1 section 1. Do "
+    "not skip this; every later lab assumes this interpreter."
 )
 print("\nOK: the kernel you are typing in is the course environment.")
+
+# %%
+# And the spec on disk must still carry -E. Jupyter-JSC's server exports a
+# Python-3.13 PYTHONPATH, kernels inherit the server's environment, and a Python-3.12
+# kernel without -E imports the *server's* zmq and dies at "Starting..." before it can
+# speak. Lab 1 section 1.2 explains and applies the patch; this cell only confirms that
+# nobody re-registered the spec since, which is what silently drops the flag.
+kernel_spec = json.loads((KDIR / "kernel.json").read_text())
+print((KDIR / "kernel.json").read_text())
+assert kernel_spec["argv"][1] == "-E", (
+    "the kernel spec lost its -E flag — it was probably overwritten by a fresh "
+    "`ipykernel install`. Re-run Lab 1 section 1.2, then restart this kernel."
+)
+print("OK: kernel spec carries -E.")
 
 # %% [markdown]
 # ### Installing anything else, correctly
@@ -585,11 +422,28 @@ print("\nOK: the kernel you are typing in is the course environment.")
 # %%
 print(f"pip that would run from PATH : {subprocess.run(['bash', '-lc', 'command -v pip'], capture_output=True, text=True).stdout.strip() or '<none>'}")
 print(f"pip inside this kernel       : {sys.executable} -m pip")
-print("\nAlways the second form. For course packages, prefer `uv add` / `uv sync` so the "
-      "change lands in pyproject.toml and uv.lock and your partner gets it too.")
+print("\nAlways the second form. For course packages, prefer `uv add` in the terminal "
+      "and re-run the bootstrap, so the change lands in pyproject.toml and uv.lock and "
+      "your partner gets it too.")
 
 # %% [markdown]
-# ## 9. Matplotlib, and the fix that was applied too late
+# ### The optional Google Earth Engine extra
+#
+# `geemap` and `earthengine-api` are an optional extra (`gee`) because Lab 3 also works
+# through the Copernicus Data Space API. Install it only if you are taking that path.
+# It runs `uv sync` in the repository, which needs a login node — compute nodes have no
+# route to PyPI — and a Jupyter-JSC session is a login-node process.
+
+# %%
+gee = run(["bash", "-lc", f"cd {REPO} && UV_PROJECT_ENVIRONMENT={VENV} uv sync --frozen --extra gee"])
+if gee.returncode == 0:
+    check = run([str(VENV / "bin" / "python"), "-c", "import geemap, ee; print('geemap', geemap.__version__)"])
+    assert check.returncode == 0, "gee extra installed but geemap still does not import"
+else:
+    print("gee extra skipped. Fine if you are using the Copernicus Data Space API in Lab 3.")
+
+# %% [markdown]
+# ## 6. Matplotlib, and the fix that was applied too late
 #
 # The 2025/26 notebook imported matplotlib at the top of a cell and set `MPLCONFIGDIR`
 # further down the *same* cell. Its own stored output is the proof that this did
@@ -639,7 +493,7 @@ assert fig_path.stat().st_size > 1000, f"figure not written: {fig_path}"
 print(f"wrote {fig_path} ({fig_path.stat().st_size:,} bytes)")
 
 # %% [markdown]
-# ## 10. A Git workflow that actually works
+# ## 7. A Git workflow that actually works
 #
 # Every step goes through `git(...)` with an explicit `cwd=REPO`, and every step is
 # followed by an assertion that state really changed. Compare with the 2025/26 demo,
@@ -647,7 +501,7 @@ print(f"wrote {fig_path} ({fig_path.stat().st_size:,} bytes)")
 # printed `Already up to date.` because no checkout had persisted.
 #
 # We also avoid `git add .`. On this course `git add .` is how `.npz` files reach a
-# commit; section 11 makes that concrete.
+# commit; section 8 makes that concrete.
 
 # %%
 BRANCH = f"lab2-{paths.username()}"
@@ -684,7 +538,7 @@ author = git_out("log", "-1", "--format=%an <%ae>")
 print(f"author of that commit: {author}")
 
 # %% [markdown]
-# ## 11. Do not commit data artifacts
+# ## 8. Do not commit data artifacts
 #
 # This is the Git mistake that actually costs you on this course, and the 2025/26 lab
 # never mentioned it. Labs 3 and 4 write `.tif`, `.npz`, `.npy` and `.pt` files, and
@@ -776,7 +630,7 @@ print(
 )
 
 # %% [markdown]
-# ## 12. Exercise 3 — predict the merge conflict
+# ## 9. Exercise 3 — predict the merge conflict
 #
 # The 2025/26 lab told students to provoke a conflict with `!git pull origin main`
 # inside a notebook cell. Two problems: a non-interactive subprocess that makes git
@@ -877,7 +731,7 @@ print(
 )
 
 # %% [markdown]
-# ## 13. Exercise 4 — a real dataset, and no answer
+# ## 10. Exercise 4 — a real dataset, and no answer
 #
 # The 2025/26 lab stated a four-part task ("load a sample CSV, do statistics,
 # visualise, save results") and then spent the next four cells supplying the complete,
@@ -1020,7 +874,7 @@ else:
 EXERCISE_DONE = not problems
 
 # %% [markdown]
-# ## 14. Gate board
+# ## 11. Gate board
 #
 # `eo_course.gates` prints a pass/fail board. Lab 2's gates are environment gates:
 # each one is something a student could previously claim without evidence.
@@ -1062,7 +916,7 @@ n_pass = sum(1 for ln in lines if "[PASS]" in ln)
 print(f"\n{n_pass}/{len(lines)} lab-2 gates passed.")
 
 # %% [markdown]
-# ## 15. Self-test — the gate for Lab 2
+# ## 12. Self-test — the gate for Lab 2
 #
 # Your deliverable is a **green test suite**. `tests/test_eo_course.py` covers the
 # radiometry, label, split, metric, baseline and gate code that labs 3–7 depend on. If
@@ -1095,7 +949,7 @@ self_test = {
 for k, v in self_test.items():
     print(f"  {k:26s} {v}")
 
-assert self_test["kernel_is_course_venv"], "not running in the course venv — section 8"
+assert self_test["kernel_is_course_venv"], "not running in the course venv — section 5"
 assert (REPO / ".git").is_dir(), "repository not cloned at the expected path — section 5"
 assert identity_ok, f"git identity is a placeholder or unset: {cfg_name!r} <{cfg_email!r}>"
 assert self_test["eo_course_importable"], "eo_course is not importable from this kernel"
@@ -1107,7 +961,7 @@ assert self_test["pytest_passed"], (
 print("\nSELF-TEST PASSED — Lab 2 gate cleared.")
 
 # %% [markdown]
-# ## 16. Deliverable
+# ## 13. Deliverable
 #
 # `results.json` is the course ledger. Lab 2 has no model, so there are no accuracy
 # numbers; `record_run` requires four metric keys, so we put the honest thing there —
@@ -1157,7 +1011,7 @@ assert out.exists(), f"record_run did not leave a file at {out}"
 print(results.summary_table("lab2"))
 
 # %% [markdown]
-# ## 17. Submission checklist
+# ## 14. Submission checklist
 #
 # Concrete artifacts. Attach or paste each one.
 #
@@ -1179,9 +1033,9 @@ print(results.summary_table("lab2"))
 # ### What to bring to Lab 3
 #
 # Lab 3 acquires real Sentinel-2 imagery. It needs the kernel you just built, and it
-# needs the habit from section 11: its outputs are gigabyte rasters that must go to
+# needs the habit from section 8: its outputs are gigabyte rasters that must go to
 # `paths.data_root()` in scratch and must never reach a commit. If you took the Google
-# Earth Engine path, you also need the `gee` extra from section 6 and your own
+# Earth Engine path, you also need the `gee` extra from section 5 and your own
 # Copernicus Data Space or GEE credentials in environment variables — read with
 # `os.environ["NAME"]` so a missing one raises, never with a silent default, and never
 # printed, not even truncated.

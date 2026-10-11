@@ -77,8 +77,8 @@
 # 2. Verify your email address.
 # 3. Join the course project: <https://judoor.fz-juelich.de/projects/join/training2653>.
 # 4. Accept the usage policy. Training-project approval is normally fast, but it is
-#    not instantaneous, and it is the single most common reason a student cannot
-#    start Lab 2.
+#    not instantaneous, and it is the single most common reason a student cannot get
+#    past 0.6 on the day of the lab.
 #
 # ### 0.2 Generate a key pair
 #
@@ -806,14 +806,21 @@ demo.mkdir(parents=True, exist_ok=True)
 
 acct = paths.PROJECT_ACCOUNT
 acct_env = acct.replace("-", "_")
-broken = run(["sh", "-c", f"echo jureca:$PROJECT_{acct_env}/scripts/"])
+# The bug happens on the **laptop**, where PROJECT_<acct> is not set. Running the broken
+# form here would not reproduce it, because on a login node the variable *is* set and
+# the path expands fine — which is exactly why students only meet this bug from a
+# terminal they did not expect. So clear it, and the demo tells the truth.
+broken = run(["env", "-u", f"PROJECT_{acct_env}", "sh", "-c",
+              f"echo jureca:$PROJECT_{acct_env}/scripts/"])
 fixed = run(["sh", "-c", rf"echo 'jureca:/p/project1/{acct}/$USER/scripts/'"])
 
 b = broken.stdout.strip()
 f = fixed.stdout.strip().replace("$USER", paths.username())
-print(f"\nbroken form expands locally to : {b}")
-print(f"quoted form resolves remotely to: {f}")
-assert b.endswith("/scripts/") and acct not in b, "demo did not reproduce the bug"
+print(f"\nbroken form, variable unset, expands locally to : {b}")
+print(f"quoted form resolves remotely to               : {f}")
+assert b.endswith("/scripts/") and f"project1/{acct}" not in b, (
+    "demo did not reproduce the bug — the path should have collapsed to /scripts/"
+)
 assert acct in f and paths.username() in f
 
 print(f"""

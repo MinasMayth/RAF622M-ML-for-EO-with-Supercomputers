@@ -41,14 +41,16 @@ Every notebook is generated from a source file in `notebooks_src/` and ships
 **with no outputs**. That is deliberate: a stored output is a number you did not
 produce. Run the cells.
 
-### Lab 1: Judoor Account and Access to HPC
+### Lab 1: Judoor Account, JURECA Access, and the Course Kernel
 **Week 1 | Duration: 120 min | Mode: Online**
 
 **Topics:**
 - Introduction to Jülich Supercomputing Centre (JSC)
 - Creating and activating Judoor accounts
-- SSH key setup and authentication
-- First login to JURECA supercomputer
+- SSH key setup, authentication, and the `from=` access restriction
+- First login to JURECA and launching Jupyter-JSC
+- Cloning the course repository and building the environment in a terminal
+- Registering the custom Jupyter kernel, and why it needs `-E` on Jupyter-JSC
 - Understanding HPC filesystem (home, project, scratch)
 - Basic SLURM commands
 
@@ -57,27 +59,35 @@ produce. Run the cells.
 - ✅ Membership in `training2653` project
 - ✅ Successful SSH connection to JURECA
 - ✅ Personal workspace directory structure
+- ✅ Course environment built (`BOOTSTRAP_OK`)
+- ✅ Custom Python kernel (ML-EO Course) selected and verified by `sys.prefix`
+- ✅ One SLURM job submitted and confirmed with `sacct`
 
 📓 **Notebook:** [`lab1_judoor_hpc_access.ipynb`](../../notebooks/iceland-ml/lab1_judoor_hpc_access.ipynb)
 
 ---
 
-### Lab 2: Jupyter-JSC and Git Basics
+### Lab 2: Git on the Cluster
 **Week 3 | Duration: 120 min | Mode: Online**
 
+Lab 2 opens by verifying the environment Lab 1 built and names the Lab 1 step to re-run
+if a check fails. It does not rebuild it: the 2025/26 edition carried a second, drifting
+copy of the whole setup here, and a student following both notebooks got two
+contradictory sets of instructions for one task.
+
 **Topics:**
-- Launching Jupyter-JSC (web-based JupyterLab on HPC)
+- Launching Jupyter-JSC and running notebooks in the course kernel
+- "The venv exists" versus "the venv runs unaided" — only the second matters to a kernel
 - Git fundamentals for version control
-- Cloning course repository
-- Creating Python virtual environments
-- Registering custom Jupyter kernels
-- First notebook execution on HPC
+- Git identity, and the placeholder that shipped in 2025/26
+- Branching, committing and merging with state verified after every step
+- Keeping data artifacts out of Git history
 
 **Deliverables:**
-- ✅ Running Jupyter-JSC session
-- ✅ Cloned course repository
-- ✅ Custom Python kernel (ML-EO Course)
-- ✅ Git identity configuration
+- ✅ Environment checks green (clone path, unaided interpreter, `sys.prefix`, `-E`)
+- ✅ Git identity configured and asserted
+- ✅ Branch/commit/merge demonstrated
+- ✅ `pytest tests -q` passing — the Lab 2 gate
 
 📓 **Notebook:** [`lab2_jupyter_jsc_git.ipynb`](../../notebooks/iceland-ml/lab2_jupyter_jsc_git.ipynb)
 

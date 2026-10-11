@@ -9,8 +9,8 @@ Graded labs are 5.1, 5.2, 6 and 7; see
 
 | Lab | Topic | Duration | Main Deliverable | Graded |
 |-----|-------|----------|------------------|--------|
-| Lab 1 | Judoor & HPC Access | 120 min | Working SSH/JURECA access | |
-| Lab 2 | Jupyter-JSC & Git | 120 min | Jupyter session + repo clone + kernel | |
+| Lab 1 | Judoor, HPC Access & Course Kernel | 120 min | Working access + built env + registered kernel | |
+| Lab 2 | Git | 120 min | Green test suite + verified environment | |
 | Lab 3 | Sentinel-2 Acquisition (Copernicus) | 120 min | 4 scenes + request manifest | |
 | Lab 4.1 | Data Preprocessing | 120 min | Reflectance stacks + aligned CORINE | |
 | Lab 4.2 | Patch Extraction | 120 min | Patch archives with provenance | |
@@ -23,31 +23,42 @@ Graded labs are 5.1, 5.2, 6 and 7; see
 
 ## 📚 Lab Details
 
-### Lab 1 — Judoor & HPC Access
+### Lab 1 — Judoor, JURECA Access, and the Course Kernel
 **Notebook:** [`notebooks/iceland-ml/lab1_judoor_hpc_access.ipynb`](../../notebooks/iceland-ml/lab1_judoor_hpc_access.ipynb)
 
 **Core steps**
 1. Create Judoor account and join `training2653`
-2. Configure SSH keys
-3. Connect to JURECA and check storage areas (`HOME`, `PROJECT`, `SCRATCH`)
-4. Run basic Slurm commands (`squeue`, `sinfo`, `sbatch`)
+2. Configure SSH keys and the `from=`-restricted JURECA access rule
+3. Launch Jupyter-JSC, clone the repository, and run
+   `scripts/bootstrap_course_env.sh` in a terminal
+4. Register the `ML-EO Course` kernel (including the `-E` flag Jupyter-JSC requires)
+   and switch the notebook onto it
+5. Check storage areas (`HOME`, `PROJECT`, `SCRATCH`) and quotas
+6. Run basic Slurm commands (`squeue`, `sinfo`, `sbatch`) and submit a real job
+
+Sections 0 is reading and terminal typing only — no cells — because you cannot run a
+cell before you can log in. Section 1's cells are standard-library-only so they work in
+whatever kernel JupyterLab gives you; from section 2 onward every cell asserts you are
+in the course kernel.
 
 **Output**
-- Working cluster access and basic HPC workflow
+- Working cluster access, a built environment, a working kernel, and one `sacct`-verified job
 
 ---
 
-### Lab 2 — Jupyter-JSC & Git
+### Lab 2 — Git
 **Notebook:** [`notebooks/iceland-ml/lab2_jupyter_jsc_git.ipynb`](../../notebooks/iceland-ml/lab2_jupyter_jsc_git.ipynb)
 
 **Core steps**
-1. Launch a Jupyter-JSC session
-2. Clone and sync the course repository
-3. Create a Python virtual environment
-4. Register and test a custom Jupyter kernel
+1. Verify the environment Lab 1 built (clone path, unaided interpreter, `sys.prefix`,
+   `-E` in the kernel spec) — and repair it if a check fails
+2. Set and *assert* a real Git identity
+3. Branch, commit, and merge for real, with assertions after every step
+4. Prove data artifacts cannot reach a commit
+5. Resolve a merge conflict, then run the course test suite
 
 **Output**
-- Usable notebook environment on JSC with reproducible Git setup
+- A green `pytest tests -q`, and a Git workflow that demonstrably persists
 
 ---
 
@@ -187,8 +198,8 @@ per epoch.
 
 ## ✅ Completion Checklist
 
-- [ ] Lab 1: SSH into JURECA; workspace layout created
-- [ ] Lab 2: Jupyter-JSC session; repo cloned; custom kernel selected
+- [ ] Lab 1: SSH into JURECA; workspace layout created; environment built; `ML-EO Course` kernel selected
+- [ ] Lab 2: environment checks green; Git configured; `pytest tests -q` passing
 - [ ] Lab 3: Four L2A scenes staged; request manifest written
 - [ ] Lab 4.1: Reflectance scaling asserted; CORINE aligned with `nearest`
 - [ ] Lab 4.2: Patches saved with provenance; duplicate gate green or diagnosed

@@ -46,15 +46,33 @@ By completing this course, you will learn to:
 ### Step 2: Join the Training Project
 After your Judoor account is approved, join the `training2653` project.
 
-### Step 3: Follow the Labs
+### Step 3: Build the environment (once, in a JupyterLab terminal)
+Lab 1 section 0 walks through this, but the four commands are here so you can find them
+without opening a notebook:
+
+```bash
+mkdir -p "$PROJECT_training2653/$USER/repos"
+cd "$PROJECT_training2653/$USER/repos"
+git clone https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers
+cd RAF622M-ML-for-EO-with-Supercomputers
+bash scripts/bootstrap_course_env.sh      # ends with BOOTSTRAP_OK
+```
+
+Run it on a **login node** (a Jupyter-JSC session counts) — compute nodes have no route
+to PyPI. It installs `uv` for your user, a self-contained CPython in your scratch
+directory, and the virtualenv in project space. Then open
+`notebooks/iceland-ml/lab1_judoor_hpc_access.ipynb` and run its section 1 to register
+the `ML-EO Course` kernel, and switch to it.
+
+### Step 4: Follow the Labs
 Work through the notebooks sequentially starting with Lab 1.
 
 ## 📓 Lab Schedule
 
 | Lab | Topic | Notebook |
 |-----|-------|----------|
-| 1 | Judoor & HPC Access | `lab1_judoor_hpc_access.ipynb` |
-| 2 | Jupyter-JSC & Git | `lab2_jupyter_jsc_git.ipynb` |
+| 1 | Judoor, JURECA access, and the course kernel | `lab1_judoor_hpc_access.ipynb` |
+| 2 | Git (verifies the Lab 1 environment) | `lab2_jupyter_jsc_git.ipynb` |
 | 3 | Sentinel-2 Acquisition | `lab3_1_data_acquisition.ipynb` |
 | 4 | Data Preprocessing | `lab4_1_preprocessing.ipynb` |
 | 5 | Patch Extraction | `lab4_2_preprocessing_patches.ipynb` |
