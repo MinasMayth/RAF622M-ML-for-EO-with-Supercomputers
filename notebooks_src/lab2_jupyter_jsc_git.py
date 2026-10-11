@@ -289,10 +289,21 @@ if name:
 if email:
     run(["git", "config", "--global", "user.email", email])
 
-cfg_name = git_out("config", "--global", "user.name") if subprocess.run(
-    ["git", "config", "--global", "user.name"], capture_output=True, text=True).returncode == 0 else ""
-cfg_email = git_out("config", "--global", "user.email") if subprocess.run(
-    ["git", "config", "--global", "user.email"], capture_output=True, text=True).returncode == 0 else ""
+def global_git_config(key: str) -> str:
+    """Read one key from ~/.gitconfig.
+
+    Deliberately not `git_out(...)`: that helper defaults to `cwd=REPO`, and `REPO` is
+    not defined until section 5. `--global` reads the file in your home directory and
+    needs no repository, so running it from your home directory is both correct here
+    and independent of the clone.
+    """
+    p = subprocess.run(["git", "config", "--global", key],
+                       cwd=Path.home(), capture_output=True, text=True)
+    return p.stdout.strip() if p.returncode == 0 else ""
+
+
+cfg_name = global_git_config("user.name")
+cfg_email = global_git_config("user.email")
 print(f"\nglobal user.name  = {cfg_name!r}")
 print(f"global user.email = {cfg_email!r}")
 print(
