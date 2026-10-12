@@ -132,10 +132,13 @@ def main(argv=None) -> int:
     # The env matters just as much. A Jupyter-JSC kernel inherits the server's
     # PYTHONPATH; a kernel started from a plain SSH shell inherits nothing, and that
     # difference hides real bugs. Pass it through when we have it.
-    env = None
+    #
+    # Build the kwargs dict rather than passing env=None: jupyter_client does
+    # kwargs["env"].get("JPY_SESSION_NAME") and an explicit None crashes there.
+    start_kwargs = {"cwd": str(nb_path.parent)}
     if server_pp:
-        env = dict(os.environ, PYTHONPATH=server_pp)
-    km.start_kernel(cwd=str(nb_path.parent), env=env)
+        start_kwargs["env"] = dict(os.environ, PYTHONPATH=server_pp)
+    km.start_kernel(**start_kwargs)
     kc = km.client()
     kc.start_channels()
     try:

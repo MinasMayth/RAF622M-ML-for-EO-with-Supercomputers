@@ -252,6 +252,7 @@ import shutil
 import socket
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 ACCOUNT = os.environ.get("EO_COURSE_ACCOUNT", "training2653")
@@ -308,12 +309,17 @@ print(run([str(venv / "bin" / "python"), "-c",
            "import sys; print('  ', sys.version.split()[0], sys.prefix)"]))
 
 # %% [markdown]
-# ### 1.1 Clear any stale spec, then register
+# ### 1.1 Move any stale spec aside, then register
 #
 # `--user` refuses to overwrite, and a kernel spec left by an earlier course run may be
 # a **symlink into a virtualenv that no longer exists**. ipykernel happily writes
 # through such a symlink, and Jupyter then offers a kernel that dies on contact — which
 # is what the 2025/26 cohort saw, with nothing in the UI to explain it.
+#
+# The old spec is moved to a temporary directory, not deleted, and is put back if the
+# registration below fails. Order matters here: if you remove the spec first and the
+# registration then errors, you have converted one broken cell into an account with no
+# working kernel at all, and the next thing you try cannot even start.
 #
 # Note the `-E` on this command line, before `-m`. Section 1.2 explains why the kernel
 # itself needs it; the registration command needs it for the same reason and one level
@@ -335,20 +341,26 @@ print(run([str(venv / "bin" / "python"), "-c",
 
 # %%
 KDIR = Path.home() / ".local" / "share" / "jupyter" / "kernels" / "ml_eo_course"
+
+# Move the old spec aside rather than deleting it, and put it back if the new
+# registration fails. Deleting first is how you turn one broken cell into a
+# machine with no kernel at all.
+stash = Path(tempfile.mkdtemp(prefix="ml_eo_course_spec_")) / "ml_eo_course"
 if KDIR.is_symlink() or KDIR.exists():
-    print(f"removing existing kernel spec: {KDIR}"
+    print(f"moving existing kernel spec aside: {KDIR}"
           + (f" -> {KDIR.resolve()}" if KDIR.is_symlink() else ""))
-    if KDIR.is_dir() and not KDIR.is_symlink():
-        shutil.rmtree(KDIR)
-    else:
-        KDIR.unlink()
+    shutil.move(str(KDIR), str(stash))
 
 reg = run([str(venv / "bin" / "python"), "-E", "-m", "ipykernel", "install", "--user",
            "--name", "ml_eo_course", "--display-name", "ML-EO Course"])
+if reg.returncode != 0 and stash.exists():
+    shutil.move(str(stash), str(KDIR))
+    print("registration failed: the previous kernel spec has been restored.")
 assert reg.returncode == 0, (
     "kernel registration failed; read the stderr above. If it mentions zmq or "
     "'Cython backend', that is the PYTHONPATH problem in this section's preamble."
 )
+shutil.rmtree(stash.parent, ignore_errors=True)  # the old spec is genuinely superseded
 assert KDIR.is_dir() and not KDIR.is_symlink(), f"{KDIR} is not a real directory"
 assert (KDIR / "kernel.json").is_file(), "kernel.json was not written"
 print((KDIR / "kernel.json").read_text())
