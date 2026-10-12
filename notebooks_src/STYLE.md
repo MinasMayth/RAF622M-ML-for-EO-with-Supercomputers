@@ -85,8 +85,15 @@ installed.
 
 ```
 $VENV/bin/python scripts/run_notebook_headless.py \
-    notebooks/iceland-ml/lab1_judoor_hpc_access.ipynb --kernel ml_eo_course
+    notebooks/iceland-ml/lab1_judoor_hpc_access.ipynb --kernel ml_eo_course \
+    --detect-server-pythonpath
 ```
+
+`--detect-server-pythonpath` is not optional in practice. A Jupyter-JSC kernel
+inherits the server's `PYTHONPATH`, which points at Python-3.13 site-packages; a
+kernel started from a plain SSH shell inherits nothing. Cells that launch the
+venv interpreter without `-E` pass in the second world and fail in the first, so
+running without the flag tests an environment no student ever has.
 
 Run **both** kernels where it matters: Lab 1 sections 1 and 2 are meant to work
 in a kernel that is *not* the course one, so check them with

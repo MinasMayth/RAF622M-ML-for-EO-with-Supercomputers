@@ -9,7 +9,16 @@ dying with one giant notebook-wide error.
 Run it on a JURECA login node, in the course venv, against the built notebook::
 
     $VENV/bin/python scripts/run_notebook_headless.py \\
-        notebooks/iceland-ml/lab1_judoor_hpc_access.ipynb --kernel ml_eo_course
+        notebooks/iceland-ml/lab1_judoor_hpc_access.ipynb --kernel ml_eo_course \\
+        --detect-server-pythonpath
+
+Pass ``--detect-server-pythonpath`` on JURECA. A Jupyter-JSC kernel inherits the
+server's ``PYTHONPATH`` (Python-3.13 site-packages); a kernel started from a
+plain SSH shell inherits nothing. That difference hides real bugs: a cell that
+launches the venv interpreter without ``-E`` works perfectly in the second
+world and dies in the first, which is exactly how the ``ipykernel install``
+failure survived every test run. Without the flag this runner is testing an
+environment students never have.
 
 The point is not to produce an executed notebook; it is to prove the lab runs
 top-to-bottom in the kernel a student will actually use. Cells that ask the
@@ -25,6 +34,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -67,6 +78,15 @@ def main(argv=None) -> int:
     ap.add_argument("--timeout", type=float, default=900.0,
                     help="per-cell wall clock; SLURM polls need minutes")
     ap.add_argument("--quiet", action="store_true", help="suppress cell output")
+    ap.add_argument("--server-pythonpath", default="",
+                    help="PYTHONPATH to give the kernel, to imitate a Jupyter-JSC "
+                         "server; see --detect-server-pythonpath")
+    ap.add_argument("--detect-server-pythonpath", action="store_true",
+                    help="load the JupyterLab module and pass its PYTHONPATH to the "
+                         "kernel. This is what a real Jupyter-JSC session does, and "
+                         "without it several classes of bug are invisible: a kernel "
+                         "started from a plain SSH shell has no PYTHONPATH, so cells "
+                         "that launch the venv interpreter without -E appear to work.")
     ap.add_argument("--list-kernels", action="store_true")
     args = ap.parse_args(argv)
 
@@ -74,6 +94,19 @@ def main(argv=None) -> int:
         for name, spec in sorted(KernelSpecManager().find_kernel_specs().items()):
             print(f"  {name:24s} {spec}")
         return 0
+
+    server_pp = args.server_pythonpath
+    if args.detect_server_pythonpath:
+        probe = subprocess.run(
+            ["bash", "-lc",
+             "module load Stages/2026 GCCcore/14.3.0 Python/3.13.5 JupyterLab "
+             ">/dev/null 2>&1 || true; printf '%s' \"${PYTHONPATH:-}\""],
+            capture_output=True, text=True)
+        server_pp = probe.stdout.strip()
+        if server_pp:
+            print(f"kernel PYTHONPATH <- {server_pp.split(':')[0]}")
+        else:
+            print("kernel PYTHONPATH: none detected (not on a JURECA login node?)")
 
     nb_path = Path(args.notebook).resolve()
     with nb_path.open(encoding="utf-8") as fh:
@@ -95,7 +128,14 @@ def main(argv=None) -> int:
     km = KernelManager(kernel_name=args.kernel)
     # Start in the notebook's own directory, exactly as JupyterLab would, so that
     # relative paths and `from eo_course import paths` behave the same way.
-    km.start_kernel(cwd=str(nb_path.parent))
+    #
+    # The env matters just as much. A Jupyter-JSC kernel inherits the server's
+    # PYTHONPATH; a kernel started from a plain SSH shell inherits nothing, and that
+    # difference hides real bugs. Pass it through when we have it.
+    env = None
+    if server_pp:
+        env = dict(os.environ, PYTHONPATH=server_pp)
+    km.start_kernel(cwd=str(nb_path.parent), env=env)
     kc = km.client()
     kc.start_channels()
     try:

@@ -961,9 +961,17 @@ print(f"\n{n_pass}/{len(lines)} lab-2 gates passed.")
 # We run it as a subprocess with `cwd=REPO` and the venv's own interpreter — not
 # `!pytest`, which would run whatever `pytest` is on `PATH` in a shell that never
 # activated anything.
+#
+# The `-E` is not decoration and it is not inherited from the kernel you are typing in.
+# A kernel started with `-E` still exports the Jupyter-JSC server's `PYTHONPATH` to every
+# child process it spawns, so this subprocess starts poisoned even though this cell
+# could not have run at all without `-E`. Lab 1 section 1.1 has the full explanation.
+# Anything that does not import `zmq` survives the poison, which is why this cell can
+# look fine while the same omission breaks a cell that touches jupyter or ipykernel:
+# silent, load-dependent correctness is exactly what you are being trained to distrust.
 
 # %%
-pytest = run([sys.executable, "-m", "pytest", "tests", "-q"], cwd=REPO)
+pytest = run([sys.executable, "-E", "-m", "pytest", "tests", "-q"], cwd=REPO)
 print(f"\npytest exit status: {pytest.returncode}")
 
 import importlib

@@ -314,6 +314,24 @@ print(run([str(venv / "bin" / "python"), "-c",
 # a **symlink into a virtualenv that no longer exists**. ipykernel happily writes
 # through such a symlink, and Jupyter then offers a kernel that dies on contact — which
 # is what the 2025/26 cohort saw, with nothing in the UI to explain it.
+#
+# Note the `-E` on this command line, before `-m`. Section 1.2 explains why the kernel
+# itself needs it; the registration command needs it for the same reason and one level
+# earlier. This cell runs in whatever kernel JupyterLab gave you, and that kernel
+# inherited the Jupyter-JSC server's `PYTHONPATH`, which points at Python-3.13
+# site-packages. The interpreter you are launching here is the course venv's **3.12**,
+# so without `-E` it imports `ipykernel`, `jupyter_client` and `zmq` from the server's
+# 3.13 tree and dies:
+#
+# ```
+# ImportError: Attempting to import zmq Cython backend, which has not been compiled.
+# ```
+#
+# That is not a broken install and not your typo. It is the same variable as in 1.2,
+# caught one step sooner. The rule, which you will want in your fingers for the rest of
+# the course: **whenever you launch the venv's interpreter from inside a notebook, pass
+# `-E`.** `-E` is not inherited — a kernel started with it still exports `PYTHONPATH` to
+# every child process it spawns.
 
 # %%
 KDIR = Path.home() / ".local" / "share" / "jupyter" / "kernels" / "ml_eo_course"
@@ -325,9 +343,12 @@ if KDIR.is_symlink() or KDIR.exists():
     else:
         KDIR.unlink()
 
-reg = run([str(venv / "bin" / "python"), "-m", "ipykernel", "install", "--user",
+reg = run([str(venv / "bin" / "python"), "-E", "-m", "ipykernel", "install", "--user",
            "--name", "ml_eo_course", "--display-name", "ML-EO Course"])
-assert reg.returncode == 0, "kernel registration failed; read the stderr above"
+assert reg.returncode == 0, (
+    "kernel registration failed; read the stderr above. If it mentions zmq or "
+    "'Cython backend', that is the PYTHONPATH problem in this section's preamble."
+)
 assert KDIR.is_dir() and not KDIR.is_symlink(), f"{KDIR} is not a real directory"
 assert (KDIR / "kernel.json").is_file(), "kernel.json was not written"
 print((KDIR / "kernel.json").read_text())
