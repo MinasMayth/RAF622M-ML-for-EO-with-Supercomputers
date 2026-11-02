@@ -1,3 +1,12 @@
+site_name: TÖV606M - Machine Learning for Earth Observation
+site_description: Lab materials for RAF622M / TÖV606M, Machine Learning for Earth Observation with Supercomputers
+site_url: https://minasmayth.github.io/RAF622M-ML-for-EO-with-Supercomputers/
+site_author: University of Iceland and Jülich Supercomputing Centre
+
+repo_name: MinasMayth/RAF622M-ML-for-EO-with-Supercomputers
+repo_url: https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers
+edit_uri: edit/main/docs/
+
 nav:
   - Home: 'iceland-ml/README.md'
   - Lab Summary: 'iceland-ml/LAB_SUMMARY.md'
@@ -5,32 +14,75 @@ nav:
     - Lab 1 - Judoor & HPC Access: 'units/lab1/README.md'
     - Lab 2 - Jupyter-JSC & Git: 'units/lab2/README.md'
     - Lab 3 - Sentinel-2 Acquisition: 'units/lab3/README.md'
-    - Lab 4 - Data Preprocessing: 'units/lab4/README.md'
-    - Lab 5 - Patch Extraction: 'units/lab5/README.md'
-    - Lab 6 - Baseline Model Training: 'units/lab6/README.md'
+    - Lab 4 - Preprocessing & Patch Extraction: 'units/lab4/README.md'
+    - Lab 5 - CNN Training & Class Imbalance: 'units/lab5/README.md'
+    - Lab 6 - TerraTorch Fine-tuning: 'units/lab6/README.md'
     - Lab 7 - Model Evaluation: 'units/lab7/README.md'
-    - Lab 8 - TerraTorch Fine-tuning: 'units/lab8/README.md'
-
-# Project information
-site_name: TÖV606M - Machine Learning for Earth Observation
 
 # Configuration
 theme:
   name: material
   palette:
-    scheme: iceland
+    # The toggle lets students pick a light scheme, which matters for readability in a
+    # bright room or with low vision. `iceland` stays the default.
+    - scheme: iceland
+      primary: '#0A0C10'
+      accent: '#9ecbff'
+      toggle:
+        icon: material/weather-night
+        name: Switch to light scheme
+    # Light alternative. Some students read far better on a light page, and a dark-only
+    # site is an accessibility barrier in a bright room.
+    - scheme: default
+      primary: '#0A0C10'
+      accent: '#024dbe'
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light scheme
   font:
     text: Source Sans 3
     code: DM Mono
   logo: assets/computer.png
   favicon: assets/computer.png
+  # Declares the content language so screen readers pick the right pronunciation and
+  # browser translation prompts behave.
+  language: en
+  features:
+    - navigation.sections     # group the sidebar so it is scannable with a screen reader
+    - navigation.top          # "back to top" link, useful on the long lab pages
+    - navigation.tracking     # keep the sidebar in sync with the section you are reading
+    - toc.follow              # highlight the heading you are on
+    - search.suggest
+    - search.highlight
+    - content.code.copy       # copy buttons are labelled, and help keyboard and switch users
+    - content.tooltips
+
 extra_css:
   - stylesheets/extra.css
 
-# Extensions
+# Alternatives to the web font: if Source Sans 3 fails to load, the fallback stack below is
+# still a readable humanist sans rather than a generic serif.
+extra:
+  generator: false
+
 markdown_extensions:
-  - pymdownx.tasklist:
-      custom_checkbox: true
+  # --- Structure -------------------------------------------------------------
+  # Material enables `toc` and `tables` on its own, but not the rest of these.
+  - toc:
+      permalink: true          # every heading gets a copyable link
+      toc_depth: 3
+  - admonition                 # !!! note / !!! warning blocks used on the lab pages
+  - attr_list
+  - md_in_html
+  - def_list                   # definition lists, used for the glossaries
+  - abbr                       # *[HPC]: ... expansions, announced in full by screen readers
+  - footnotes
+
+  # --- Collapsible content ---------------------------------------------------
+  # Used for the optional and long-reference blocks so a page can be read linearly.
+  - pymdownx.details
+
+  # --- Code ------------------------------------------------------------------
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
@@ -38,3 +90,11 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+  # --- Lists and tasks -------------------------------------------------------
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.betterem:
+      smart_enable: all

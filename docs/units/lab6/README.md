@@ -1,6 +1,6 @@
 # Lab 6 — Finetuning with `TerraTorch`
 
-**Notebook:** [lab6_terratorch_finetuning.ipynb](../../../notebooks/iceland-ml/lab6_terratorch_finetuning.ipynb)  
+**Notebook:** [lab6_terratorch_finetuning.ipynb](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab6_terratorch_finetuning.ipynb)  
 
 ## Scope
 Fine-tune Prithvi-EO-2.0 on custom data using TerraTorch.

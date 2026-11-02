@@ -25,16 +25,19 @@ By completing this course, you will learn to:
 │   ├── lab1_judoor_hpc_access.ipynb
 │   ├── lab2_jupyter_jsc_git.ipynb
 │   ├── lab3_1_data_acquisition.ipynb
-│   ├── lab4_1_preprocessing.ipynb
-│   ├── lab4_2_preprocessing_patches.ipynb
-│   ├── lab5_1_baseline_training.ipynb
-│   ├── lab5_2_model_evaluation.ipynb
-│   └── lab6_finetune.ipynb
-├── docs/                     # Documentation
-│   ├── iceland-ml/           # Course guides
-│   └── units/                # Lab-specific docs
+│   ├── lab4_1_data_preprocessing.ipynb
+│   ├── lab4_2_patch_extraction.ipynb
+│   ├── lab5_1_cnn_training.ipynb
+│   ├── lab5_2_pytorch_lightning.ipynb
+│   ├── lab6_terratorch_finetuning.ipynb
+│   ├── lab6_config.yaml
+│   └── lab7_model_evaluation.ipynb
+├── docs/                     # Documentation (published with MkDocs Material)
+│   ├── iceland-ml/           # Course overview and lab summary
+│   └── units/                # One landing page per lab
+├── mkdocs.yml                # Site configuration
 ├── requirements.txt          # Python dependencies
-└── pyproject.toml           # Project configuration
+└── pyproject.toml            # Project configuration
 ```
 
 ## 🚀 Getting Started
@@ -51,16 +54,21 @@ Work through the notebooks sequentially starting with Lab 1.
 
 ## 📓 Lab Schedule
 
-| Lab | Topic | Notebook |
-|-----|-------|----------|
-| 1 | Judoor & HPC Access | `lab1_judoor_hpc_access.ipynb` |
-| 2 | Jupyter-JSC & Git | `lab2_jupyter_jsc_git.ipynb` |
-| 3 | Sentinel-2 Acquisition | `lab3_1_data_acquisition.ipynb` |
-| 4 | Data Preprocessing | `lab4_1_preprocessing.ipynb` |
-| 5 | Patch Extraction | `lab4_2_preprocessing_patches.ipynb` |
-| 6 | Model Training | `lab5_1_baseline_training.ipynb` |
-| 7 | Model Evaluation | `lab5_2_model_evaluation.ipynb` |
-| 8 | TerraTorch Fine-tuning | `lab6_finetune.ipynb` |
+Each lab has a landing page under `docs/units/` and one or more notebooks under
+`notebooks/iceland-ml/`. The table lists the notebook filenames as they exist in the repository.
+
+| Lab | Topic | Notebook(s) | Landing page |
+|-----|-------|-------------|--------------|
+| 1 | Judoor & HPC Access | `lab1_judoor_hpc_access.ipynb` | [docs/units/lab1](docs/units/lab1/README.md) |
+| 2 | Jupyter-JSC & Git | `lab2_jupyter_jsc_git.ipynb` | [docs/units/lab2](docs/units/lab2/README.md) |
+| 3 | Sentinel-2 Acquisition | `lab3_1_data_acquisition.ipynb` | [docs/units/lab3](docs/units/lab3/README.md) |
+| 4 | Preprocessing & Patch Extraction | `lab4_1_data_preprocessing.ipynb`, `lab4_2_patch_extraction.ipynb` | [docs/units/lab4](docs/units/lab4/README.md) |
+| 5 | CNN Training & Class Imbalance | `lab5_1_cnn_training.ipynb`, `lab5_2_pytorch_lightning.ipynb` | [docs/units/lab5](docs/units/lab5/README.md) |
+| 6 | TerraTorch Fine-tuning | `lab6_terratorch_finetuning.ipynb` | [docs/units/lab6](docs/units/lab6/README.md) |
+| 7 | Model Evaluation & Metrics | `lab7_model_evaluation.ipynb` | [docs/units/lab7](docs/units/lab7/README.md) |
+
+Lab 1 is the only one you can start before the course begins, and it is the one to finish first:
+every later lab assumes the access and workspace it sets up.
 
 ## 📖 Documentation
 

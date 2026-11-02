@@ -1,7 +1,7 @@
 # Lab 4 — Preprocessing & Patch Extraction
 
-**Notebook A:** [lab4_1_data_preprocessing.ipynb](../../../notebooks/iceland-ml/lab4_1_data_preprocessing.ipynb)  
-**Notebook B:** [lab4_2_patch_extraction.ipynb](../../../notebooks/iceland-ml/lab4_2_patch_extraction.ipynb)
+**Notebook A:** [lab4_1_data_preprocessing.ipynb](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab4_1_data_preprocessing.ipynb)  
+**Notebook B:** [lab4_2_patch_extraction.ipynb](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab4_2_patch_extraction.ipynb)
 
 ## Scope
 Prepare EO inputs and labels, then generate model-ready patch datasets.

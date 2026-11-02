@@ -1,36 +1,56 @@
-# Lab Quick Reference Guide
+﻿# Lab Quick Reference Guide
 
 
 ## 🗓️ Current Lab Schedule
 
 | Lab | Topic | Duration | Main Deliverable |
 |-----|-------|----------|------------------|
-| Lab 1 | Judoor & HPC Access | 120 min | Working SSH/JURECA access |
+| Lab 1 | Judoor & HPC Access | 120 min | Working SSH/JURECA access + one completed batch job |
 | Lab 2 | Jupyter-JSC & Git | 120 min | Jupyter session + repo clone + kernel |
 | Lab 3 | Sentinel-2 Data Acquisition | 120 min | Downloaded scenes + metadata |
 | Lab 4 | Preprocessing & Patch Extraction | 120 min | Train/val/test patch datasets |
 | Lab 5 | CNN Training & Class Imbalance | 120 min | Trained CNN + diagnostics |
+| Lab 6 | TerraTorch Fine-tuning | 120 min | Fine-tuned Prithvi-EO-2.0 checkpoint |
+| Lab 7 | Model Evaluation & Metrics | 120 min | Metric comparison + per-class recall |
+
+Labs 6 and 7 are listed in the order of the notebook files. If you work through the notebooks in
+numeric order, Lab 6 (TerraTorch) comes before Lab 7 (evaluation), but the evaluation functions from
+Lab 7 are useful for judging the Lab 6 model.
 
 ---
 
 ## 📚 Lab Details
 
 ### Lab 1 — Judoor & HPC Access
-**Notebook:** [`notebooks/iceland-ml/lab1_judoor_hpc_access.ipynb`](../../notebooks/iceland-ml/lab1_judoor_hpc_access.ipynb)
+**Notebook:** [`notebooks/iceland-ml/lab1_judoor_hpc_access.ipynb`](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab1_judoor_hpc_access.ipynb)  
+**Landing page:** [units/lab1](../units/lab1/README.md)
 
 **Core steps**
-1. Create Judoor account and join `training2600`
-2. Configure SSH keys
-3. Connect to JURECA and check storage areas (`HOME`, `PROJECT`, `SCRATCH`)
-4. Run basic Slurm commands (`squeue`, `sinfo`, `sbatch`)
+1. Create a Judoor account, enable multi-factor authentication, and join `training2600`
+2. Generate an SSH key pair with a passphrase and register the public half in Judoor
+3. Connect to JURECA and confirm where you are (`whoami`, `hostname`, `pwd`)
+4. Activate the course project with `jutil env activate -p training2600`, then inspect
+   `HOME`, `PROJECT` and `SCRATCH`
+5. Build the standard course workspace layout under `$PROJECT`
+6. Submit a batch job on `dc-cpu-devel`, watch it, read its `.out` and `.err` logs, and check
+   the charge with `sacct`
 
 **Output**
-- Working cluster access and basic HPC workflow
+- Working cluster access, a course workspace, and one completed batch job with its job ID and
+  `sacct` record
+
+**Watch out for**
+- `$PROJECT` and `$SCRATCH` are empty until the project is activated, so paths built from them
+  silently resolve to the wrong place
+- Omitting `--partition` puts a job on `dc-gpu`, not a CPU partition
+- Compute nodes have no internet, so `pip install` inside a job script fails
+- JSC rejects SSH keys without a passphrase
 
 ---
 
 ### Lab 2 — Jupyter-JSC & Git
-**Notebook:** [`notebooks/iceland-ml/lab2_jupyter_jsc_git.ipynb`](../../notebooks/iceland-ml/lab2_jupyter_jsc_git.ipynb)
+**Notebook:** [`notebooks/iceland-ml/lab2_jupyter_jsc_git.ipynb`](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab2_jupyter_jsc_git.ipynb)
+**Landing page:** [units/lab2](../units/lab2/README.md)
 
 **Core steps**
 1. Launch a Jupyter-JSC session
@@ -44,7 +64,8 @@
 ---
 
 ### Lab 3 — Sentinel-2 Data Acquisition
-**Notebook:** [`notebooks/iceland-ml/lab3_1_data_acquisition.ipynb`](../../notebooks/iceland-ml/lab3_1_data_acquisition.ipynb)
+**Notebook:** [`notebooks/iceland-ml/lab3_1_data_acquisition.ipynb`](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab3_1_data_acquisition.ipynb)
+**Landing page:** [units/lab3](../units/lab3/README.md)
 
 **Core steps**
 1. Authenticate and access the imagery source (GEE workflow)
@@ -58,8 +79,9 @@
 ---
 
 ### Lab 4 — Preprocessing & Patch Extraction
-**Notebook A:** [`notebooks/iceland-ml/lab4_1_data_preprocessing.ipynb`](../../notebooks/iceland-ml/lab4_1_data_preprocessing.ipynb)  
-**Notebook B:** [`notebooks/iceland-ml/lab4_2_patch_extraction.ipynb`](../../notebooks/iceland-ml/lab4_2_patch_extraction.ipynb)
+**Notebook A:** [`notebooks/iceland-ml/lab4_1_data_preprocessing.ipynb`](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab4_1_data_preprocessing.ipynb)  
+**Notebook B:** [`notebooks/iceland-ml/lab4_2_patch_extraction.ipynb`](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab4_2_patch_extraction.ipynb)
+**Landing page:** [units/lab4](../units/lab4/README.md)
 
 **Core steps**
 1. Preprocess imagery and labels
@@ -73,7 +95,9 @@
 ---
 
 ### Lab 5 — CNN Training & Class Imbalance
-**Notebook:** [`notebooks/iceland-ml/lab5_1_transformer_training.ipynb`](../../notebooks/iceland-ml/lab5_1_transformer_training.ipynb)
+**Notebook A:** [`notebooks/iceland-ml/lab5_1_cnn_training.ipynb`](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab5_1_cnn_training.ipynb)  
+**Notebook B:** [`notebooks/iceland-ml/lab5_2_pytorch_lightning.ipynb`](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab5_2_pytorch_lightning.ipynb)  
+**Landing page:** [units/lab5](../units/lab5/README.md)
 
 **Current lab focus**
 - Intro-level **CNN-only** training workflow
@@ -89,6 +113,38 @@
 
 **Output**
 - Trained model/checkpoint + imbalance-aware diagnostics
+
+---
+
+### Lab 6 — TerraTorch Fine-tuning
+**Notebook:** [`notebooks/iceland-ml/lab6_terratorch_finetuning.ipynb`](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab6_terratorch_finetuning.ipynb)  
+**Config:** [`notebooks/iceland-ml/lab6_config.yaml`](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab6_config.yaml)  
+**Landing page:** [units/lab6](../units/lab6/README.md)
+
+**Core steps**
+1. Understand the difference between pre-training and fine-tuning a geospatial foundation model
+2. Assemble a TerraTorch task config for your own patch dataset
+3. Fine-tune Prithvi-EO-2.0 on multi-spectral data
+4. Save the checkpoint and the config that produced it
+
+**Output**
+- End-to-end TerraTorch workflow and a fine-tuned Prithvi-EO-2.0 checkpoint
+
+---
+
+### Lab 7 — Model Evaluation & Metrics
+**Notebook:** [`notebooks/iceland-ml/lab7_model_evaluation.ipynb`](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab7_model_evaluation.ipynb)  
+**Landing page:** [units/lab7](../units/lab7/README.md)
+
+**Core steps**
+1. Build the core evaluation functions
+2. Evaluate a synthetic imbalanced test set and compare accuracy with balanced accuracy
+3. Extract per-class recall and read the confusion matrix
+4. Explore how metrics respond to imbalance, model quality, and error pattern
+5. Apply the same functions to your Lab 5 model
+
+**Output**
+- Metric comparison across scenarios, plus per-class recall for your own model
 
 ---
 
@@ -119,6 +175,9 @@ Reduce batch size and/or workers; verify GPU allocation.
 - [ ] Lab 4: Run patch extraction notebook and save datasets
 - [ ] Lab 5: Train CNN with one imbalance strategy
 - [ ] Lab 5: Report balanced accuracy + macro-F1 + confusion matrix
+- [ ] Lab 6: Fine-tune Prithvi-EO-2.0 and save the config used
+- [ ] Lab 7: Report accuracy, balanced accuracy and macro-F1 side by side
+- [ ] Lab 7: Report per-class recall for your own model
 
 ---
 
@@ -131,4 +190,5 @@ Reduce batch size and/or workers; verify GPU allocation.
 
 ---
 
-**Note:** This summary is aligned with the current course state. Future units will be added once finalized.
+**Note:** This summary covers the lab units that exist in the repository today. New units are added
+here as their notebooks are finalised.

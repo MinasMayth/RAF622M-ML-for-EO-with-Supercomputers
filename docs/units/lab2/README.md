@@ -1,6 +1,6 @@
 # Lab 2 — Jupyter-JSC & Git
 
-**Notebook:** [lab2_jupyter_jsc_git.ipynb](../../../notebooks/iceland-ml/lab2_jupyter_jsc_git.ipynb)
+**Notebook:** [lab2_jupyter_jsc_git.ipynb](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab2_jupyter_jsc_git.ipynb)
 
 ## Scope
 Run notebooks on JSC, set up Git workflow, and register a usable Python kernel.

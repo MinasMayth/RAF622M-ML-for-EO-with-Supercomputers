@@ -1,6 +1,6 @@
 # Lab 3 — Data Acquisition (Sentinel-2)
 
-**Notebook:** [lab3_1_data_acquisition.ipynb](../../../notebooks/iceland-ml/lab3_1_data_acquisition.ipynb)
+**Notebook:** [lab3_1_data_acquisition.ipynb](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab3_1_data_acquisition.ipynb)
 
 ## Scope
 Acquire and inspect Sentinel-2 data for the Iceland case study.

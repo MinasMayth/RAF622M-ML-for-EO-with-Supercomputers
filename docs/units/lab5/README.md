@@ -1,8 +1,8 @@
 # Lab 5 — CNN Training & Class Imbalance
 
 **Notebooks:** 
-- [lab5_1_transformer_training.ipynb](../../../notebooks/iceland-ml/lab5_1_transformer_training.ipynb)
-- [lab5_2_pytorch_lightning.ipynb](../../../notebooks/iceland-ml/lab5_2_pytorch_lightning.ipynb)
+- [lab5_1_transformer_training.ipynb](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab5_1_cnn_training.ipynb)
+- [lab5_2_pytorch_lightning.ipynb](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab5_2_pytorch_lightning.ipynb)
 
 ## Scope
 - Train a baseline CNN for land-cover classification and handle severe class imbalance.

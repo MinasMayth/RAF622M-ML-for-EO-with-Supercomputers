@@ -40,15 +40,17 @@ Each lab builds progressively toward a complete ML pipeline.
 - SSH key setup and authentication
 - First login to JURECA supercomputer
 - Understanding HPC filesystem (home, project, scratch)
-- Basic SLURM commands
+- Submitting and monitoring a first batch job with SLURM
 
 **Deliverables:**
-- ✅ Active Judoor account
-- ✅ Membership in `training2600` project
-- ✅ Successful SSH connection to JURECA
-- ✅ Personal workspace directory structure
+- Active Judoor account with multi-factor authentication enabled
+- Membership in the `training2600` project
+- Successful SSH connection to JURECA
+- Personal workspace directory structure under `$PROJECT`
+- One completed batch job, with its job ID and `sacct` record
 
-📓 **Notebook:** [`lab1_judoor_hpc_access.ipynb`](../../notebooks/iceland-ml/lab1_judoor_hpc_access.ipynb)
+📓 **Notebook:** [`lab1_judoor_hpc_access.ipynb`](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab1_judoor_hpc_access.ipynb)  
+📄 **Landing page:** [Lab 1 unit page](../units/lab1/README.md)
 
 ---
 
@@ -69,7 +71,7 @@ Each lab builds progressively toward a complete ML pipeline.
 - ✅ Custom Python kernel (ML-EO Course)
 - ✅ Git identity configuration
 
-📓 **Notebook:** [`lab2_jupyter_jsc_git.ipynb`](../../notebooks/iceland-ml/lab2_jupyter_jsc_git.ipynb)
+📓 **Notebook:** [`lab2_jupyter_jsc_git.ipynb`](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab2_jupyter_jsc_git.ipynb)
 
 ---
 
@@ -90,7 +92,7 @@ Each lab builds progressively toward a complete ML pipeline.
 - ✅ Scene metadata (dates, cloud cover, bands)
 - ✅ Downloaded GeoTIFF imagery
 
-📓 **Notebook:** [`lab3_gee_sentinel2_acquisition.ipynb`](../../notebooks/iceland-ml/lab3_gee_sentinel2_acquisition.ipynb)
+📓 **Notebook:** [`lab3_1_data_acquisition.ipynb`](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab3_1_data_acquisition.ipynb)
 
 ---
 
@@ -110,7 +112,7 @@ Each lab builds progressively toward a complete ML pipeline.
 - ✅ Normalization parameters (saved for inference)
 - ✅ Dataset metadata (bands, classes, dimensions)
 
-📓 **Notebook:** [`lab4_preprocessing_patches.ipynb`](../../notebooks/iceland-ml/lab4_preprocessing_patches.ipynb) — preprocessing section
+📓 **Notebook:** [`lab4_preprocessing_patches.ipynb`](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab4_1_data_preprocessing.ipynb) — preprocessing section
 
 ---
 
@@ -128,7 +130,7 @@ Each lab builds progressively toward a complete ML pipeline.
 - ✅ Patch-level metadata and integrity checks
 - ✅ Saved patch arrays ready for training
 
-📓 **Notebook:** [`lab4_preprocessing_patches.ipynb`](../../notebooks/iceland-ml/lab4_preprocessing_patches.ipynb) — patch extraction section
+📓 **Notebook:** [`lab4_preprocessing_patches.ipynb`](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab4_2_patch_extraction.ipynb) — patch extraction section
 
 ---
 
@@ -149,7 +151,7 @@ Each lab builds progressively toward a complete ML pipeline.
 - ✅ Best model checkpoint
 - ✅ SLURM submission script for batch jobs
 
-📓 **Notebook:** [`lab5.1_baseline_training.ipynb`](../../notebooks/iceland-ml/lab5.1_baseline_training.ipynb)
+📓 **Notebook:** [`lab5_1_cnn_training.ipynb`](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab5_1_cnn_training.ipynb)
 
 ---
 
@@ -172,7 +174,7 @@ Each lab builds progressively toward a complete ML pipeline.
 - ✅ Sample predictions (correct/incorrect)
 - ✅ Recommendations for improvement
 
-📓 **Notebook:** [`lab5.2_model_evaluation.ipynb`](../../notebooks/iceland-ml/lab5.2_model_evaluation.ipynb)
+📓 **Notebook:** [`lab7_model_evaluation.ipynb`](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab7_model_evaluation.ipynb)
 
 ---
 
@@ -190,7 +192,7 @@ Each lab builds progressively toward a complete ML pipeline.
 - ✅ Fine-tuned model checkpoint
 - ✅ Notes on hyperparameters and runtime performance
 
-📓 **Notebook:** [`lab6_finetune.ipynb`](../../notebooks/iceland-ml/lab6_finetune.ipynb)
+📓 **Notebook:** [`lab6_terratorch_finetuning.ipynb`](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/blob/main/notebooks/iceland-ml/lab6_terratorch_finetuning.ipynb)
 
 ---
 
@@ -208,24 +210,31 @@ Each lab builds progressively toward a complete ML pipeline.
 - **GitHub Account:** For cloning course repository
 
 ### Software Requirements
-- SSH client (Terminal on Linux/Mac, PuTTY on Windows)
-- Modern web browser (for Jupyter-JSC)
-- Git (for version control)
+- **SSH client.** OpenSSH ships with Windows 10 version 1809 and later, macOS, and most Linux
+  distributions. Lab 1 Section 3 shows how to check whether you have it and how to install it on
+  Windows if you do not. PuTTY works too, but the course instructions use the `ssh` command line,
+  so OpenSSH is less confusing.
+- **Modern web browser** (for Jupyter-JSC and Judoor)
+- **Git** (for version control, from Lab 2)
+- **VS Code with the Remote SSH extension** (optional, but the most comfortable way to edit files on
+  the cluster)
 
 ---
 
 ## Resources
 
 ### Notebooks
-All lab notebooks are available in [`notebooks/iceland-ml/`](../../notebooks/iceland-ml/):
+All lab notebooks are available in
+[`notebooks/iceland-ml/`](https://github.com/MinasMayth/RAF622M-ML-for-EO-with-Supercomputers/tree/main/notebooks/iceland-ml):
 - `lab1_judoor_hpc_access.ipynb`
 - `lab2_jupyter_jsc_git.ipynb`
-- `lab3_gee_sentinel2_acquisition.ipynb`
-- `lab4.1_preprocessing.ipynb`
-- `lab4.2_preprocessing_patches.ipynb`
-- `lab5.1_baseline_training.ipynb`
-- `lab5.2_model_evaluation.ipynb`
-- `lab6_finetune.ipynb`
+- `lab3_1_data_acquisition.ipynb`
+- `lab4_1_data_preprocessing.ipynb`
+- `lab4_2_patch_extraction.ipynb`
+- `lab5_1_cnn_training.ipynb`
+- `lab5_2_pytorch_lightning.ipynb`
+- `lab6_terratorch_finetuning.ipynb` (with `lab6_config.yaml`)
+- `lab7_model_evaluation.ipynb`
 
 ### Documentation
 - **JSC Documentation:** https://apps.fz-juelich.de/jsc/hps/jureca/

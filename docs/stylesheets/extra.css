@@ -1,32 +1,110 @@
+/*
+ * "iceland" palette for RAF622M / TOV606M.
+ *
+ * Accessibility notes for anyone editing this file:
+ *   - Text colours are checked against WCAG 2.1 AA: 4.5:1 for normal text, 3:1 for large
+ *     text and meaningful borders. The measured ratio is written next to each colour.
+ *     Page background is #0e1117, code background is #111622.
+ *   - Most rules below are scoped to [data-md-color-scheme="iceland"]. That is deliberate:
+ *     mkdocs.yml offers a light scheme as an alternative, and unscoped `!important`
+ *     overrides would leak into it and make code unreadable there. If you add a rule that
+ *     assumes a dark background, scope it the same way.
+ *   - Never use colour as the only carrier of meaning. Links stay underlined, focus is
+ *     always visible, and admonitions keep their text titles.
+ */
+
 [data-md-color-scheme="iceland"] {
     --md-primary-fg-color:          #0A0C10;
     --md-primary-bg-color:          #ffffff;
-    --md-accent-fg-color:           #ffffff;
+    --md-accent-fg-color:           #9ecbff;
     --md-accent-bg-color:           #ffffff;
-    --md-typeset-color:             #a8b1bf;
-    --md-typeset-a-color:           #e5e7eb;
+    --md-typeset-color:             #a8b1bf;  /*  8.7:1 on page bg */
+    --md-typeset-a-color:           #e5e7eb;  /* 15.3:1 on page bg */
     --md-default-bg-color:          #0e1117;
     --md-footer-bg-color:           #0e1117;
-    --md-default-fg-color--light:   #bbc4d2;
-    --md-typeset-table-color:       #1c212e;
-    --md-code-fg-color:             #a8b1bf;
+
+    /*
+     * Opaque foregrounds. Material's defaults are semi-transparent white, which reads as
+     * grey on a dark background and drops below 4.5:1 at the lighter steps. Setting them
+     * opaque keeps secondary text (captions, metadata, table headers) legible.
+     */
+    --md-default-fg-color:           #dfe4ea;  /* 13.9:1 */
+    --md-default-fg-color--light:    #bbc4d2;  /* 11.0:1 */
+    --md-default-fg-color--lighter:  #8f9aab;  /*  6.6:1 */
+    --md-default-fg-color--lightest: #6d7a8d;  /*  4.6:1 */
+
+    /* Table rules: 3:1 against the page background, so the grid is actually visible. */
+    --md-typeset-table-color:       #55648a;  /*  3.2:1 */
+
+    --md-code-fg-color:             #a8b1bf;  /*  8.4:1 on code bg */
     --md-code-bg-color:             #111622;
     --md-code-hl-name-color:        #e5e7eb;
     --md-code-hl-punctuation-color: #a8b1bf;
-    --md-code-hl-keyword-color:     #c4b4ff;
-    --md-code-hl-string-color:      #e3cb6b;
+    --md-code-hl-keyword-color:     #c4b4ff;  /*  9.7:1 */
+    --md-code-hl-string-color:      #e3cb6b;  /* 11.2:1 */
     --md-code-hl-operator-color:    #e5e7eb;
     --md-code-hl-number-color:      #e5e7eb;
-    --md-code-hl-function-color:    #d8f999;
+    --md-code-hl-function-color:    #d8f999;  /* 15.4:1 */
     --md-code-hl-constant-color:    #e5e7eb;
-    --md-code-hl-comment-color:     #424e60;
-    --md-code-hl-class-color:       #024dbe;
-  }
+    --md-code-hl-comment-color:     #8296ad;  /*  6.0:1 (was #424e60, 2.2:1) */
+    --md-code-hl-class-color:       #79b0ff;  /*  8.2:1 (was #024dbe, 2.4:1) */
+    --md-code-hl-variable-color:    #79b0ff;
+    --md-code-hl-generic-color:     #8296ad;
 
-/* Links */
-.md-typeset a {
-  text-decoration: underline;
+    /* Local tokens used by the border rules below. --course-focus is set further down,
+       separately per scheme, so the light scheme gets a dark focus ring. */
+    --course-border: #55648a;  /*  3.2:1 */
+    --course-warn:   #f0b429;  /* 10.1:1 */
+    --course-row:    rgba(255, 255, 255, 0.03);
 }
+
+/*
+ * Visible keyboard focus.
+ *
+ * Material's default ring is nearly invisible on a dark background, which makes the site
+ * hard to use with a keyboard alone. outline + outline-offset is used so the ring is not
+ * clipped by overflow containers, and :focus-visible means mouse clicks do not leave a
+ * ring behind.
+ *
+ * The generic selectors at the end are what actually catch most elements; the .md-*
+ * selectors are kept because Material sets its own outline on some of them.
+ */
+:root {
+  --course-focus: #024dbe;  /* light scheme default; overridden per scheme below */
+}
+
+[data-md-color-scheme="iceland"] {
+  --course-focus: #9ecbff;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible,
+.md-typeset a:focus-visible,
+.md-typeset summary:focus-visible,
+.md-typeset label:focus-within,
+.md-header__button:focus-visible,
+.md-nav__link:focus-visible,
+.md-search__input:focus-visible,
+.md-tabs__link:focus-visible,
+.md-sidebar__scrollwrap :focus-visible,
+.md-footer__link:focus-visible,
+.md-clipboard:focus-visible,
+.md-content__button:focus-visible {
+  outline: 2px solid var(--course-focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/*
+ * The "Skip to content" link is already in the Material DOM and is correctly hidden until
+ * focused, so it needs no styling here. The `a:focus-visible` rule above gives it a visible
+ * ring when a keyboard user tabs to it.
+ */
 
 /* Logo */
 .md-header__button.md-logo {
@@ -38,7 +116,11 @@
   width: 2.2rem;
 }
 
-/* See: https://github.com/squidfunk/mkdocs-material/issues/175#issuecomment-616694465 */
+/*
+ * Tables: Material constrains tables to the text column, which squeezes the wide comparison
+ * tables used on the lab pages.
+ * See https://github.com/squidfunk/mkdocs-material/issues/175#issuecomment-616694465
+ */
 .md-typeset__table {
   min-width: 100%;
 }
@@ -49,25 +131,118 @@
   font-size: 1.1em;
 }
 
-/* Code syntax highlighting */
+/*
+ * Code blocks. Borders are scoped to the dark scheme; the light scheme's own borders are
+ * already visible.
+ */
 .md-typeset pre {
   border-radius: 4px;
-  border: 1px solid #1c212e;
   font-size: 1em;
 }
 .md-typeset code {
   border-radius: 4px;
-  border: 1px solid #1c212e;
 }
-.highlight .k {
-  font-style: italic;
+
+[data-md-color-scheme="iceland"] .md-typeset pre,
+[data-md-color-scheme="iceland"] .md-typeset code {
+  border: 1px solid var(--course-border);
 }
+
+[data-md-color-scheme="iceland"] .md-typeset table tbody tr:nth-child(2n) {
+  background: var(--course-row);
+}
+
+/* Keyword styling is scheme-independent. */
+.highlight .k,
 .highlight .kn {
   font-style: italic;
 }
-.highlight .nn {
+
+/*
+ * Pygments token colours that Material's scheme gets wrong on the dark background.
+ * Scoped, because these exact values are unreadable on a light background.
+ */
+[data-md-color-scheme="iceland"] .highlight .nn {
   color: #d8f999 !important;
 }
+/* Comments were styled too faintly to read; keep the italic, fix the colour. */
+[data-md-color-scheme="iceland"] .highlight .c,
+[data-md-color-scheme="iceland"] .highlight .c1,
+[data-md-color-scheme="iceland"] .highlight .cm,
+[data-md-color-scheme="iceland"] .highlight .ch,
+[data-md-color-scheme="iceland"] .highlight .cs {
+  color: #8296ad !important;
+}
+[data-md-color-scheme="iceland"] .highlight .nc,
+[data-md-color-scheme="iceland"] .highlight .nx {
+  color: #79b0ff !important;
+}
 
+/*
+ * Admonitions (!!! note, !!! warning) get a coloured left border and icon. Colour alone is
+ * not enough to tell them apart, which is why Material also renders a text title; these
+ * rules only raise the border contrast, they do not change the meaning.
+ */
+.md-typeset .admonition,
+.md-typeset details {
+  border-width: 0 0 0 2px;
+}
 
+[data-md-color-scheme="iceland"] .md-typeset .admonition,
+[data-md-color-scheme="iceland"] .md-typeset details {
+  border-left-color: #79b0ff;
+}
 
+[data-md-color-scheme="iceland"] .md-typeset .warning,
+[data-md-color-scheme="iceland"] .md-typeset .caution,
+[data-md-color-scheme="iceland"] .md-typeset .danger {
+  border-left-color: var(--course-warn);
+}
+
+/*
+ * Respect reduced-motion preferences. Material animates the sidebar, tabs and link
+ * underlines; that is a genuine problem for some readers.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/*
+ * Forced-colours / Windows high contrast, where the OS rewrites the palette and custom
+ * borders and rings vanish unless you restate them with system colours.
+ */
+@media (forced-colors: active) {
+  .md-typeset code,
+  .md-typeset pre,
+  .md-typeset table:not([class]),
+  .md-typeset .admonition,
+  .md-typeset details {
+    border: 1px solid CanvasText;
+  }
+  :focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+}
+
+/*
+ * Print. The dark theme wastes ink and the chrome is noise on paper; lab pages are often
+ * printed or saved to PDF by students working offline on the cluster.
+ */
+@media print {
+  .md-header, .md-sidebar, .md-footer, .md-tabs, .md-search,
+  .md-clipboard, .md-footer-meta, .md-code__actions {
+    display: none !important;
+  }
+  .md-content {
+    color: #000;
+  }
+  .md-typeset a {
+    text-decoration: underline;
+  }
+}

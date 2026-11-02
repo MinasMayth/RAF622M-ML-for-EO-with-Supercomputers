@@ -18,3 +18,11 @@
   sections:
   - local: lab5/README
     title: CNN Training & Class Imbalance
+- title: Lab 6. TerraTorch Fine-tuning
+  sections:
+  - local: lab6/README
+    title: TerraTorch Fine-tuning
+- title: Lab 7. Model Evaluation & Metrics
+  sections:
+  - local: lab7/README
+    title: Model Evaluation & Metrics
